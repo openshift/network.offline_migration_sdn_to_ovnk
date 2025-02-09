@@ -1,0 +1,35 @@
+- name: End-to-End Tests for `clean_migration_field` module
+  hosts: localhost
+  gather_facts: no
+  vars:
+    clean_migration_timeout: 60  # Lower timeout for testing
+
+  tasks:
+    - name: Run `clean_migration_field` module
+      clean_migration_field:
+        timeout: "{{ clean_migration_timeout }}"
+      register: clean_migration_result
+      #ignore_errors: yes  # Allow the playbook to continue even if it fails
+
+    - name: Debug output of `clean_migration_field`
+      debug:
+        var: clean_migration_result
+
+    - name: Assert success when migration field is cleared
+      assert:
+        that:
+          - "'Migration field cleared.' in clean_migration_result.msg"
+        fail_msg: "Module should have cleared the migration field but failed!"
+      when: not clean_migration_result.failed
+
+    - name: Assert failure when timeout occurs
+      assert:
+        that:
+          - "'Timeout waiting for migration field to be cleared.' in clean_migration_result.msg"
+        fail_msg: "Timeout behavior is not working as expected!"
+      when: clean_migration_result.failed and 'Timeout' in clean_migration_result.msg
+
+    - name: Fail if the module fails unexpectedly
+      fail:
+        msg: "Module failed unexpectedly: {{ clean_migration_result.msg }}"
+      when: clean_migration_result.failed and "Timeout waiting for migration field" not in clean_migration_result.msg

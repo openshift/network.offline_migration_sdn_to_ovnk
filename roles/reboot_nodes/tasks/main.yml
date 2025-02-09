@@ -1,0 +1,21 @@
+---
+- name: Reboot master nodes
+  reboot_nodes:
+    role: "master"
+    namespace: "openshift-machine-config-operator"
+    daemonset_label: "machine-config-daemon"
+    delay: 1
+    retries: 5
+    retry_delay: 3
+    timeout: 1800
+
+- name: Reboot worker nodes
+  reboot_nodes:
+    role: "worker"
+    namespace: "openshift-machine-config-operator"
+    daemonset_label: "machine-config-daemon"
+    delay: 1
+    retries: 5
+    retry_delay: 3
+    timeout: 1800
+

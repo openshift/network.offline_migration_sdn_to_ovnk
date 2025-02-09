@@ -1,0 +1,3 @@
+---
+ovn_co_timeout: 60  # Timeout in seconds for the Network CO to progress
+mco_timeout: 300  # Timeout in seconds for MCO to start updating nodes

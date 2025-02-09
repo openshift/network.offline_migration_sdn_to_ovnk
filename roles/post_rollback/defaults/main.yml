@@ -1,0 +1,14 @@
+---
+mco_timeout: 300  # Timeout in seconds for MCO to start updating nodes
+ovn_sdn_migration_timeout: 180
+checks:
+  - "oc wait co --all --for='condition=Available=True' --timeout=60s"
+  - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
+  - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
+  - "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
+  - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
+  - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
+network_provider_config: ovnKubernetesConfig
+namespace: openshift-ovn-kubernetes
+expected_network_type: OpenShiftSDN
+

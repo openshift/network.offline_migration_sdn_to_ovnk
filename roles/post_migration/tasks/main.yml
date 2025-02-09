@@ -1,0 +1,75 @@
+---
+- name: Check all cluster operators back to normal
+  verify_cluster_operators_health:
+    max_timeout: 2700
+    pause_between_checks: 30
+    required_success_count: 3
+    checks: "{{ checks }}"
+  register: result
+
+- name: Display the cluster operators status
+  shell: oc get co
+  when: result.changed
+
+- name: Check the CNI network provider
+  check_network_provider:
+    expected_network_type: "{{ expected_network_type }}"
+  register: result
+
+- name: Display the result of the network provider check
+  debug:
+    msg: "{{ result.msg }}"
+
+- name: Check if all cluster nodes are in Ready state
+  check_nodes_ready:
+  register: node_status
+
+- name: Notify user about NotReady nodes
+  debug:
+    msg: >
+      The following nodes are not in the Ready state: 
+      {{ node_status.not_ready_nodes | map(attribute='name') | join(', ') }}.
+      Please investigate machine config daemon pod logs.
+
+  when: node_status.not_ready_nodes | length > 0
+
+- name: Display command to list machine config daemon pods
+  debug:
+    msg: |
+      Run the following command to list machine config daemon pods:
+      oc get pod -n openshift-machine-config-operator
+      Example output:
+      NAME                                         READY   STATUS    RESTARTS   AGE
+      machine-config-controller-75f756f89d-sjp8b   1/1     Running   0          37m
+      machine-config-daemon-5cf4b                  2/2     Running   0          43h
+      ...
+      Run the following command to view logs for each pod:
+      oc logs <pod_name> -n openshift-machine-config-operator
+
+  when: node_status.not_ready_nodes | length > 0
+
+- name: Confirm that no pods are in an error state
+  command: oc get pods --all-namespaces -o wide
+  register: all_pods
+
+- name: Notify user if any pods are in an error state
+  debug:
+    msg: |
+      Investigate pods that are not in a Running state.
+      If necessary, reboot the node where the affected pods are scheduled.
+
+  when: "'Error' in all_pods.stdout or 'CrashLoopBackOff' in all_pods.stdout"
+
+- name: Patch Network.operator.openshift.io and wait for migration field to clear
+  clean_migration_field:
+    timeout: "{{ clean_migration_timeout }}"
+
+- name: Remove network configuration and namespace
+  manage_network_config:
+    network_provider_config: "{{ network_provider_config }}"
+    namespace: "{{ namespace }}"
+  register: result
+
+- name: Notify user about the result
+  debug:
+    msg: "{{ result.msg }}"

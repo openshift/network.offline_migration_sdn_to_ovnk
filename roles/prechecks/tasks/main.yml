@@ -1,0 +1,42 @@
+---
+- name: Check if oc client is installed and binary exists
+  check_oc_client:
+  register: oc_check_result
+
+- name: Display oc client version
+  debug:
+    msg: "OpenShift client version: {{ oc_check_result.version }}"
+  when: oc_check_result.version is defined
+
+- name: Fail if oc binary or client is not installed or functional
+  fail:
+    msg: "{{ oc_check_result.msg }}"
+  when: not oc_check_result.version
+
+- name: Check if KUBECONFIG is set and file exists
+  check_kubeconfig:
+  register: kubeconfig_result
+
+- name: Show the KUBECONFIG path
+  debug:
+    msg: "KUBECONFIG file found at: {{ kubeconfig_result.kubeconfig_path }}"
+  when: not kubeconfig_result.failed
+
+- name: Fail if KUBECONFIG is not set or file does not exist
+  fail:
+    msg: "{{ kubeconfig_result.msg }}"
+  when: kubeconfig_result.failed
+
+- name: Check if the current user is 'system:admin' using custom module
+  check_whoami:
+  register: oc_whoami_result
+
+- name: Show result of oc whoami check
+  debug:
+    msg: "The output of `oc whoami`: {{ oc_whoami_result.message }}"
+  when: not oc_whoami_result.failed
+
+- name: Fail if `oc whoami` is not 'system:admin'
+  fail:
+    msg: "{{ oc_whoami_result.msg }}"
+  when: oc_whoami_result.failed

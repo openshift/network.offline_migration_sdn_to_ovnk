@@ -1,0 +1,96 @@
+---
+- name: End-to-End Test for wait_for_mco_completion Module (Real OpenShift)
+  hosts: localhost
+  gather_facts: no
+  vars:
+    mcp_completion_timeout: 2700
+  tasks:
+
+#    - name: Run wait_for_mco_completion module (Failure due to timeout)
+#      wait_for_mco_completion:
+#        timeout: 1  # Force an immediate timeout
+#      register: result_timeout
+#      ignore_errors: yes
+
+#    - name: Debug module output (Timeout Failure)
+#      debug:
+#        var: result_timeout
+
+#    - name: Assert failure due to timeout
+#      assert:
+#        that:
+#          - result_timeout is failed
+#          - '"Timeout reached while waiting for MCO to finish." in result_timeout.msg'
+#      when: result_timeout is failed
+
+#    - name: Run wait_for_mco_completion module (Failure due to OpenShift API error)
+#      wait_for_mco_completion:
+#        timeout: "{{ mcp_completion_timeout }}"
+#      register: result_oc_failure
+#      ignore_errors: yes
+#      environment:
+#        KUBECONFIG: "/invalid/path/to/kubeconfig"  # Simulate API failure
+
+#    - name: Debug module output (OpenShift API Failure)
+#      debug:
+#        var: result_oc_failure
+
+#    - name: Assert failure due to OpenShift API error
+#      assert:
+#        that:
+#          - result_oc_failure is failed
+#          - "'Timeout reached while waiting for MCO to finish' in result_oc_failure.msg or 'Error' in result_oc_failure.msg"
+#      when: result_oc_failure is failed
+
+    - name: Run wait_for_mco_completion module (Success Scenario)
+      wait_for_mco_completion:
+        timeout: "{{ mcp_completion_timeout }}"
+      register: result_success
+      #ignore_errors: yes
+
+    - name: Debug module output (Success)
+      debug:
+        var: result_success
+
+    - name: Verify success case - UPDATED=True, UPDATING=False, DEGRADED=False
+      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updated")].status}'
+      register: mcp_updated
+      changed_when: false
+      retries: 5
+      delay: 10
+
+    - name: debug mcp
+      debug:
+        msg: "DEBUG {{ mcp_updated }}"
+
+    - name: Assert that MCP is UPDATED=True
+      assert:
+        that:
+          - '"True" in mcp_updated.stdout'
+      when: result_success is success
+
+    - name: Verify that MCP is not UPDATING
+      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updating")].status}'
+      register: mcp_updating
+      changed_when: false
+      retries: 5
+      delay: 10
+
+    - name: Assert that MCP is UPDATING=False
+      assert:
+        that:
+          - '"False" in mcp_updating.stdout'
+      when: result_success is success
+
+    - name: Verify that MCP is not DEGRADED
+      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Degraded")].status}'
+      register: mcp_degraded
+      changed_when: false
+      retries: 5
+      delay: 10
+
+    - name: Assert that MCP is DEGRADED=False
+      assert:
+        that:
+          - '"False" in mcp_degraded.stdout'
+      when: result_success is success

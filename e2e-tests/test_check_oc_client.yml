@@ -1,0 +1,26 @@
+---
+- name: E2E Test - Verify oc client installation
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Execute custom Ansible module to check oc client
+      check_oc_client:  # This should match the module name
+      register: oc_result
+      #ignore_errors: yes  # Allow playbook to continue even if the module fails
+
+    - name: Debug output
+      debug:
+        msg: "{{ oc_result }}"
+
+    - name: Assert oc binary is present
+      assert:
+        that:
+          - oc_result.version is defined
+          - oc_result.version | length > 0
+        fail_msg: "❌ OpenShift oc client is missing or non-functional!"
+        success_msg: "✅ OpenShift oc client is installed!"
+
+    - name: Print OpenShift client version
+      debug:
+        msg: "OpenShift Client Version: {{ oc_result.version }}"

@@ -1,0 +1,86 @@
+---
+- name: Pause updates for master MachineConfigPool
+  patch_mcp_paused:
+    pool_name: "master"
+    paused: true
+
+- name: Pause updates for worker MachineConfigPool
+  patch_mcp_paused:
+    pool_name: "worker"
+    paused: true
+
+- name: Patch Network.operator.openshift.io and wait for migration field to clear
+  clean_migration_field:
+    timeout: "{{ clean_migration_timeout }}"
+
+- name: Change network type to trigger MCO update
+  change_network_type:
+    network_type: "{{ target_network_type }}"
+    timeout: "{{ change_migration_timeout }}"
+
+- name: Trigger OpenshiftSDN deployment
+  trigger_network_type:
+    network_type: "{{ sdn_network_type }}"
+    timeout: "{{ sdn_co_timeout }}"
+
+- name: Get OpenShift version using custom module
+  get_ocp_version:
+    retries: 3
+    delay: 5
+  register: openshift_version_result
+  failed_when: openshift_version_result.version is not defined
+
+- name: Parse OpenShift version and determine if it's >= 4.12
+  set_fact:
+    version_major: "{{ openshift_version_result.version.split('.')[0] | int }}"
+    version_minor: "{{ openshift_version_result.version.split('.')[1] | int }}"
+
+- name: Warn if OpenShift version is < 4.12
+  debug:
+    msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes. You need to manually configure them."
+  when: version_major == 4 and version_minor <= 11
+
+#- name: Disable automatic migration of SDN features for the specified network type
+#  disable_migration_features:
+#    networkType: "OpenShiftSDN"
+#    egressIP: false
+#    egressFirewall: false
+#    multicast: false
+#    retries: 3
+#    delay: 5
+#  register: migration_result
+
+#- name: Display the result of the migration disable operation
+#  debug:
+#    msg: "{{ migration_result.msg }}"
+
+- name: Customize network settings if parameters are provided
+  configure_network_settings:
+    network_type: openshiftSDN
+    mtu: "{{ mtu | default(omit) }}"
+    vxlanPort: "{{ vxlanPort | default(omit) }}"
+    retries: 3
+    delay: 5
+  register: patch_result
+
+- name: Debug patch result
+  debug:
+    msg: "{{ patch_result.msg }}"
+
+- name: Notify user if version < 4.12
+  when: version_major == 4 and version_minor <= 11
+  debug:
+    msg: "OpenShift version is {{ ocp_version }}. Network customization feature not available."
+
+- name: Wait until the Network Cluster Operator is in PROGRESSING=True state
+  wait_for_network_co:
+    timeout: "{{ sdn_co_timeout }}"
+  register: network_co_status
+
+- name: Display the status of the Network Cluster Operator
+  debug:
+    msg: "{{ network_co_status.msg }}"
+
+- name: Wait for Multus pods to restart
+  wait_multus_restart:
+    timeout: "{{ sdn_multus_timeout }}"

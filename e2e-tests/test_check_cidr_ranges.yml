@@ -1,0 +1,49 @@
+- name: End-to-End Tests for `check_cidr_ranges` module
+  hosts: localhost
+  gather_facts: no
+  vars:
+    conflicting_cidr_ranges:
+      - "100.64.0.0/16"
+      - "169.254.169.0/29"
+      - "100.88.0.0/16"
+      - "fd98::/64"
+      - "fd69::/125"
+      - "fd97::/64"
+
+  tasks:
+    - name: Run `check_cidr_ranges` module with test CIDRs
+      check_cidr_ranges:
+        conflicting_ranges: "{{ conflicting_cidr_ranges }}"
+        timeout: 60  # Lower timeout for testing
+      register: cidr_check_result
+      #ignore_errors: yes  # Allow playbook to continue even if it fails
+
+    - name: Debug output of `check_cidr_ranges`
+      debug:
+        var: cidr_check_result
+
+    - name: Assert success when no conflicts are found
+      assert:
+        that:
+          - "'No conflicting CIDR ranges found.' in cidr_check_result.msg"
+        fail_msg: "CIDR conflict detected when there should be none!"
+      when: not cidr_check_result.failed
+
+    - name: Assert failure when conflicts are detected
+      assert:
+        that:
+          - "'Conflicting CIDR ranges found' in cidr_check_result.msg"
+        fail_msg: "Module did not detect CIDR conflicts!"
+      when: cidr_check_result.failed
+
+    - name: Fail if the module fails unexpectedly
+      fail:
+        msg: "Module failed unexpectedly: {{ cidr_check_result.msg }}"
+      when: cidr_check_result.failed and "Conflicting CIDR ranges found" not in cidr_check_result.msg
+
+    - name: Test timeout behavior (if applicable)
+      assert:
+        that:
+          - "'Timeout waiting for CIDR data' in cidr_check_result.msg"
+        fail_msg: "Timeout handling did not work as expected!"
+      when: cidr_check_result.failed and 'Timeout' in cidr_check_result.msg

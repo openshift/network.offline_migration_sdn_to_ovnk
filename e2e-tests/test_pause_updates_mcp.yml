@@ -1,0 +1,89 @@
+- name: End-to-End Test for patch_mcp_paused module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Pause updates for master MachineConfigPool
+      patch_mcp_paused:
+        pool_name: "master"
+        paused: true
+      register: pause_master_result
+
+    - name: Pause updates for worker MachineConfigPool
+      patch_mcp_paused:
+        pool_name: "worker"
+        paused: true
+      register: pause_worker_result
+
+    - name: Display pause operation results
+      debug:
+        msg:
+          - "{{ pause_master_result.msg }}"
+          - "{{ pause_worker_result.msg }}"
+
+    - name: Fetch MachineConfigPool status
+      command: oc get mcp master worker -o json
+      register: mcp_status
+      changed_when: false
+      retries: 5
+      delay: 3
+
+    - name: Parse MachineConfigPool status
+      set_fact:
+        mcp_data: "{{ (mcp_status.stdout | default('{}')) | from_json }}"
+
+    - name: Verify that master pool is paused
+      assert:
+        that:
+          - "{{ (mcp_data | json_query('items[?metadata.name==`master`].spec.paused') | first | default(false)) | bool == true }}"
+        fail_msg: "Master MachineConfigPool is not paused!"
+        success_msg: "Master MachineConfigPool is successfully paused!"
+
+    - name: Verify that worker pool is paused
+      assert:
+        that:
+          - "{{ (mcp_data | json_query('items[?metadata.name==`worker`].spec.paused') | first | default(false)) | bool == true }}"
+        fail_msg: "Worker MachineConfigPool is not paused!"
+        success_msg: "Worker MachineConfigPool is successfully paused!"
+
+#    - name: Unpause updates for master MachineConfigPool
+#      patch_mcp_paused:
+#        pool_name: "master"
+#        paused: false
+#      register: unpause_master_result
+
+#    - name: Unpause updates for worker MachineConfigPool
+#      patch_mcp_paused:
+#        pool_name: "worker"
+#        paused: false
+#      register: unpause_worker_result
+
+#    - name: Display unpause operation results
+#      debug:
+#        msg:
+#          - "{{ unpause_master_result.msg }}"
+#          - "{{ unpause_worker_result.msg }}"
+
+#    - name: Verify that master pool is unpaused
+#      command: oc get mcp master -o json
+#      register: mcp_master_check
+#      changed_when: false
+
+#    - name: Verify that worker pool is unpaused
+#      command: oc get mcp worker -o json
+#      register: mcp_worker_check
+#      changed_when: false
+
+#    - name: Assert master pool is unpaused
+#      assert:
+#        that:
+#          - "{{ (mcp_master_check.stdout | from_json).spec.paused | default(false) | bool == false }}"
+#        fail_msg: "Master MachineConfigPool is still paused!"
+#        success_msg: "Master MachineConfigPool is successfully unpaused!"
+
+#    - name: Assert worker pool is unpaused
+#      assert:
+#        that:
+#          - "{{ (mcp_worker_check.stdout | from_json).spec.paused | default(false) | bool == false }}"
+#        fail_msg: "Worker MachineConfigPool is still paused!"
+#        success_msg: "Worker MachineConfigPool is successfully unpaused!"

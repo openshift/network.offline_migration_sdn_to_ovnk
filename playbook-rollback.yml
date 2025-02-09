@@ -1,0 +1,34 @@
+---
+- name: Rollback from OVNKubernetes to OpenShiftSDN
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - role: prechecks
+      vars:
+        ovn_sdn_migration_timeout: 180
+    - role: rollback
+      vars:
+        clean_migration_timeout: 120
+        change_migration_timeout: 120
+        target_network_type: OpenShiftSDN
+        mco_update_timeout: 300s
+        mcp_completion_timeout: 2700  # Timeout in seconds
+        sdn_network_type: OpenShiftSDN
+        sdn_co_timeout: 120  # Timeout in seconds
+        sdn_multus_timeout: 300  # Timeout in seconds for waiting for Multus pods
+        verify_machine_config_timeout: 300
+    - role: reboot_nodes
+    - role: post_rollback
+      vars:
+        checks:
+          - "oc wait co --all --for='condition=Available=True' --timeout=60s"
+          - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
+          - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
+          - "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
+          - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
+          - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
+        network_provider_config: ovnKubernetesConfig
+        namespace: openshift-ovn-kubernetes
+        expected_network_type: OpenShiftSDN
+        verify_machine_config_timeout: 300
+        clean_migration_timeout: 120

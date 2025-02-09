@@ -1,0 +1,85 @@
+- name: End-to-End Test for configure_network_settings module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Apply network configuration changes
+      configure_network_settings:
+        network_type: ovnKubernetes
+      register: patch_result
+
+    - name: Debug applied patch result
+      debug:
+        msg: "{{ patch_result.msg }}"
+
+    - name: Apply network configuration changes
+      configure_network_settings:
+        network_type: ovnKubernetes
+        mtu: 1400
+        geneve_port: 6081
+        ipv4_subnet: "192.168.1.0/24"
+        retries: 3
+        delay: 5
+      register: patch_result
+
+    - name: Debug applied patch result
+      debug:
+        msg: "{{ patch_result.msg }}"
+
+    - name: Fetch updated network configuration
+      command: oc get Network.operator.openshift.io cluster -o json
+      register: network_status
+      changed_when: false
+
+    - name: Parse network configuration
+      set_fact:
+        network_data: "{{ network_status.stdout | from_json }}"
+
+    - name: Verify OVNKubernetes settings
+      assert:
+        that:
+          - network_data.spec.defaultNetwork.ovnKubernetesConfig.mtu == 1400
+          - network_data.spec.defaultNetwork.ovnKubernetesConfig.genevePort == 6081
+          - network_data.spec.defaultNetwork.ovnKubernetesConfig.v4InternalSubnet == "192.168.1.0/24"
+        fail_msg: "Network configuration does not match expected values!"
+        success_msg: "Network configuration successfully updated!"
+
+    - name: Revert network configuration to default
+      configure_network_settings:
+        network_type: ovnKubernetes
+        mtu: 1500
+        geneve_port: 6081
+        retries: 3
+        delay: 5
+      register: revert_result
+
+    - name: Debug revert result
+      debug:
+        msg: "{{ revert_result.msg }}"
+
+    - name: Validate network settings reverted
+      command: oc get Network.operator.openshift.io cluster -o json
+      register: reverted_network_status
+      changed_when: false
+
+    - name: Parse reverted network configuration
+      set_fact:
+        reverted_network_data: "{{ reverted_network_status.stdout | from_json }}"
+
+    - name: Verify reverted settings
+      assert:
+        that:
+          - reverted_network_data.spec.defaultNetwork.ovnKubernetesConfig.mtu == 1500
+          - reverted_network_data.spec.defaultNetwork.ovnKubernetesConfig.genevePort == 6081
+          # TODO check what different value could be added
+          - reverted_network_data.spec.defaultNetwork.ovnKubernetesConfig.v4InternalSubnet == "192.168.1.0/24"
+        fail_msg: "Reverted network configuration does not match expected values!"
+        success_msg: "Network configuration successfully reverted to default!"
+
+    - name: Apply network configuration changes
+      configure_network_settings:
+        network_type: ovnKubernetes
+      register: patch_result
+
+    - name: Debug applied patch result
+      debug:
+        msg: "{{ patch_result.msg }}"

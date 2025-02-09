@@ -1,0 +1,41 @@
+- name: End-to-End Test for disable_migration_features module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Disable automatic migration of SDN features for OVNKubernetes
+      disable_migration_features:
+        networkType: "OVNKubernetes"
+        egressIP: false
+        egressFirewall: false
+        multicast: false
+        retries: 3
+        delay: 5
+      register: migration_result
+
+    - name: Display the result of the migration disable operation
+      debug:
+        msg: "{{ migration_result.msg }}"
+
+    - name: Fetch OpenShift network configuration
+      command: oc get Network.operator.openshift.io cluster -o json
+      register: network_config
+      changed_when: false
+
+    - name: Parse OpenShift network configuration
+      set_fact:
+        network_settings: "{{ network_config.stdout | from_json }}"
+
+    - name: Verify that migration settings are applied
+      assert:
+        that:
+          - network_settings.spec.migration.networkType == "OVNKubernetes"
+          - network_settings.spec.migration.features.egressIP == false
+          - network_settings.spec.migration.features.egressFirewall == false
+          - network_settings.spec.migration.features.multicast == false
+        fail_msg: "Migration settings were not applied correctly!"
+        success_msg: "Migration settings successfully applied!"
+
+    - name: Print applied migration settings
+      debug:
+        msg: "Applied settings: {{ network_settings.spec.migration.features }}"

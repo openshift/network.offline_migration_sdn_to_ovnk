@@ -1,0 +1,25 @@
+- name: Test `check_whoami` custom module
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Run check_whoami module
+      check_whoami:
+      register: oc_whoami_result
+
+    - name: Debug output of check_whoami
+      debug:
+        msg: "Output: {{ oc_whoami_result.message }}"
+      when: oc_whoami_result.message is defined
+
+    - name: Assert success when logged in as `system:admin`
+      assert:
+        that:
+          - "'system:admin' in oc_whoami_result.message"
+        fail_msg: "User is not `system:admin`, test failed!"
+      when: not oc_whoami_result.failed
+
+    - name: Fail if the module fails incorrectly
+      fail:
+        msg: "Module execution failed: {{ oc_whoami_result.msg }}"
+      when: oc_whoami_result.failed

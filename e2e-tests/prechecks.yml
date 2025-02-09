@@ -1,0 +1,4 @@
+---
+- import_playbook: test_check_oc_client.yml
+- import_playbook: test_check_kubeconfig.yml
+- import_playbook: test_check_whoami.yml

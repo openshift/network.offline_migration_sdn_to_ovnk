@@ -1,0 +1,36 @@
+- name: End-to-End Tests for `check_cluster_operators` module
+  hosts: localhost
+  gather_facts: no
+  vars:
+    co_timeout: 120  # Timeout in seconds for testing
+
+  tasks:
+    - name: Run `check_cluster_operators` module
+      check_cluster_operators:
+        timeout: "{{ co_timeout }}"
+        interval: 10
+      register: co_result
+      #ignore_errors: yes  # Allow playbook to continue even if the module fails
+
+    - name: Debug output of `check_cluster_operators`
+      debug:
+        var: co_result
+
+    - name: Assert success when all ClusterOperators are available
+      assert:
+        that:
+          - "'All ClusterOperators are in the desired state.' in co_result.message"
+        fail_msg: "ClusterOperators are not in the desired state!"
+      when: not co_result.failed
+
+    - name: Fail if module fails incorrectly
+      fail:
+        msg: "Module failed unexpectedly: {{ co_result.msg }}"
+      when: co_result.failed and "Timeout waiting for ClusterOperators" not in co_result.msg
+
+    - name: Test timeout behavior (if applicable)
+      assert:
+        that:
+          - "'Timeout waiting for ClusterOperators' in co_result.msg"
+        fail_msg: "Timeout handling did not work as expected!"
+      when: co_result.failed
