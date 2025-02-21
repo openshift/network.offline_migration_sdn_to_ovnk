@@ -20,10 +20,7 @@ def run_command_with_retries(command, retries=3, delay=3):
 
 
 def get_nodes(role, retries, delay):
-    """Retrieve a list of nodes by role (master/worker)."""
-    # command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/{role} | grep -v ROLE | awk '{{print $1}}'"
-    # command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/{role} --no-headers"
-
+    """Retrieve a list of nodes by role (master)."""
     if role == "master":
         command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/master --no-headers"
     else:

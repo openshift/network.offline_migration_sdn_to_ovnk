@@ -21,7 +21,6 @@ def get_machine_config_status(timeout):
     start_time = time.time()
     while time.time() - start_time < timeout:
         output, error = run_command("oc describe node | egrep 'hostname|machineconfig'")
-        print(f"output1111 {output}")
         if not error:
             nodes = re.findall(
                 r"kubernetes\.io/hostname=(?P<hostname>.+)\n.*currentConfig: (?P<currentConfig>.+)\n.*desiredConfig: (?P<desiredConfig>.+)\n.*state: (?P<state>.+)",
@@ -69,7 +68,6 @@ def main():
             if node["state"] != "Done":
                 issues.append(f"Node {node['hostname']} state is {node['state']}, not Done.")
             if node["currentConfig"] != node["desiredConfig"]:
-                print("in if")
                 issues.append(
                     f"Node {node['hostname']} currentConfig ({node['currentConfig']}) does not match desiredConfig ({node['desiredConfig']})."
                 )
@@ -77,7 +75,6 @@ def main():
                 issues.append(
                     f"Node {node['hostname']} configuration {node['currentConfig']} does not contain expected ExecStart."
                 )
-        print(f"issues111 {issues}")
         if issues:
             module.fail_json(msg="Issues detected with machine configuration.", issues=issues)
 

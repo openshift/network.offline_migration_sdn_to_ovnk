@@ -16,7 +16,6 @@
         conflicting_ranges: "{{ conflicting_cidr_ranges }}"
         timeout: 60  # Lower timeout for testing
       register: cidr_check_result
-      #ignore_errors: yes  # Allow playbook to continue even if it fails
 
     - name: Debug output of `check_cidr_ranges`
       debug:

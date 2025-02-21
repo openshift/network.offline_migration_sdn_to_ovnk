@@ -11,7 +11,6 @@
         retries: "{{ test_retries }}"
         delay: "{{ test_delay }}"
       register: ocp_version_result
-      #ignore_errors: yes  # Allow further assertions even if it fails
 
     - name: Debug module output
       debug:

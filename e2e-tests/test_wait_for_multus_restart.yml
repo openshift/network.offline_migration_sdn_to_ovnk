@@ -6,7 +6,6 @@
     ovn_multus_timeout: 300  # Set timeout for successful restart
   tasks:
 
-
     - name: Run wait_multus_restart module (Failure due to timeout)
       wait_multus_restart:
         timeout: 1  # Force an immediate timeout
@@ -28,7 +27,6 @@
       wait_multus_restart:
         timeout: "{{ ovn_multus_timeout }}"
       register: result_success
-      #ignore_errors: yes
 
     - name: Debug module output (Success)
       debug:

@@ -9,7 +9,6 @@
       clean_migration_field:
         timeout: "{{ clean_migration_timeout }}"
       register: clean_migration_result
-      #ignore_errors: yes  # Allow the playbook to continue even if it fails
 
     - name: Debug output of `clean_migration_field`
       debug:

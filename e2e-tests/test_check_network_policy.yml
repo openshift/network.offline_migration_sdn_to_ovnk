@@ -10,7 +10,6 @@
       check_network_policy_mode:
         timeout: "{{ timeout_value }}"
       register: network_policy_result
-      #ignore_errors: yes  # Allow the playbook to continue even if it fails
 
     - name: Debug output of `check_network_policy_mode`
       debug:

@@ -2,16 +2,15 @@
   hosts: localhost
   gather_facts: no
   vars:
-    target_network_type: "OVNKubernetes"
+    network_type: "OVNKubernetes"
     change_migration_timeout: 60  # Lower timeout for testing
 
   tasks:
     - name: Run `change_network_type` module
       change_network_type:
-        network_type: "{{ target_network_type }}"
+        network_type: "{{ network_type }}"
         timeout: "{{ change_migration_timeout }}"
       register: change_network_result
-      #ignore_errors: yes  # Allow further assertions even if it fails
 
     - name: Debug output of `change_network_type`
       debug:
@@ -20,14 +19,14 @@
     - name: Assert success when network type is changed
       assert:
         that:
-          - "'Migration field set to networkType:{{ target_network_type }}' in change_network_result.msg"
+          - "'Migration field set to networkType:{{ network_type }}' in change_network_result.msg"
         fail_msg: "Module should have successfully changed the network type!"
       when: not change_network_result.failed
 
     - name: Assert failure when timeout occurs
       assert:
         that:
-          - "'Network type could not be changed to {{ target_network_type }}' in change_network_result.msg"
+          - "'Network type could not be changed to {{ network_type }}' in change_network_result.msg"
         fail_msg: "Timeout behavior is not working correctly!"
       when: change_network_result.failed and "Network type could not be changed" in change_network_result.msg
 

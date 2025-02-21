@@ -18,13 +18,6 @@ def run_command(command):
 
 def check_cluster_operators(checks):
     """Check the status of cluster operators."""
-    '''
-    checks = [
-        "oc wait co --all --for='condition=Available=True' --timeout=60s",
-        "oc wait co --all --for='condition=Progressing=False' --timeout=60s",
-        "oc wait co --all --for='condition=Degraded=False' --timeout=60s",
-    ]
-    '''
     for check in checks:
         output, error = run_command(check)
         if error:

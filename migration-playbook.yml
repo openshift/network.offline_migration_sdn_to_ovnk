@@ -8,14 +8,12 @@
         co_timeout: 1200
         clean_migration_timeout: 120
         change_migration_timeout: 120
-        target_network_type: OVNKubernetes
+        network_type: OVNKubernetes
         mco_update_timeout: 300s
         mcp_completion_timeout: 2700  # Timeout in seconds
-        ovn_network_type: OVNKubernetes
         ovn_co_timeout: 120  # Timeout in seconds
         ovn_multus_timeout: 300  # Timeout in seconds for waiting for Multus pods
         verify_machine_config_timeout: 300
-        network_type: OVNKubernetes
         conflicting_cidr_ranges:
           - "100.64.0.0/16"
           - "169.254.169.0/29"
@@ -23,3 +21,10 @@
           - "fd98::/64"
           - "fd69::/125"
           - "fd97::/64"
+        checks:
+          - "oc wait co --all --for='condition=Available=True' --timeout=60s"
+          - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
+          - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
+          #- "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
+          - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
+          - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"

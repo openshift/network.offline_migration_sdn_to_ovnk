@@ -5,43 +5,6 @@
   vars:
     mcp_completion_timeout: 2700
   tasks:
-
-#    - name: Run wait_for_mco_completion module (Failure due to timeout)
-#      wait_for_mco_completion:
-#        timeout: 1  # Force an immediate timeout
-#      register: result_timeout
-#      ignore_errors: yes
-
-#    - name: Debug module output (Timeout Failure)
-#      debug:
-#        var: result_timeout
-
-#    - name: Assert failure due to timeout
-#      assert:
-#        that:
-#          - result_timeout is failed
-#          - '"Timeout reached while waiting for MCO to finish." in result_timeout.msg'
-#      when: result_timeout is failed
-
-#    - name: Run wait_for_mco_completion module (Failure due to OpenShift API error)
-#      wait_for_mco_completion:
-#        timeout: "{{ mcp_completion_timeout }}"
-#      register: result_oc_failure
-#      ignore_errors: yes
-#      environment:
-#        KUBECONFIG: "/invalid/path/to/kubeconfig"  # Simulate API failure
-
-#    - name: Debug module output (OpenShift API Failure)
-#      debug:
-#        var: result_oc_failure
-
-#    - name: Assert failure due to OpenShift API error
-#      assert:
-#        that:
-#          - result_oc_failure is failed
-#          - "'Timeout reached while waiting for MCO to finish' in result_oc_failure.msg or 'Error' in result_oc_failure.msg"
-#      when: result_oc_failure is failed
-
     - name: Run wait_for_mco_completion module (Success Scenario)
       wait_for_mco_completion:
         timeout: "{{ mcp_completion_timeout }}"

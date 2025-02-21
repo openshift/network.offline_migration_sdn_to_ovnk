@@ -16,7 +16,6 @@ def run_command(command):
 
 def patch_network_operator(module, timeout, network_provider_config):
     """Patch the Network operator configuration."""
-    # command = f"oc patch Network.operator.openshift.io cluster --type='merge' --patch='{"spec": {"defaultNetwork": {network_provider_config}: null } }'"
     command = f"oc patch Network.operator.openshift.io cluster --type='merge' --patch '{{\"spec\":{{\"defaultNetwork\":{{\"{network_provider_config}\":null}}}}}}'"
 
     start_time = time.time()

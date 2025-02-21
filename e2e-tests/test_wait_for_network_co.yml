@@ -10,7 +10,6 @@
       wait_for_network_co:
         timeout: "{{ ovn_co_timeout }}"
       register: result_success
-      #ignore_errors: yes
 
     - name: Debug module output (Success)
       debug:

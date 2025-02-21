@@ -6,56 +6,6 @@
     ovn_reboot_timeout: 1800
   tasks:
 
-
-#    - name: Run reboot_nodes module (Failure due to missing daemonset pod)
-#      reboot_nodes:
-#        role: "worker"
-#        namespace: "openshift-invalid-namespace"  # Invalid namespace
-#        daemonset_label: "machine-config-daemon"
-#        delay: 1
-#        retries: 5
-#        retry_delay: 3
-#        timeout: "{{ ovn_reboot_timeout }}"
-#      register: result_invalid_pod
-#      ignore_errors: yes
-
-#    - name: Debug module output (Missing Daemonset Pod)
-#      debug:
-#        var: result_invalid_pod
-
-#    - name: Assert failure due to missing daemonset pod
-#      assert:
-#        that:
-#          - result_invalid_pod is failed
-#          - "'failed to reboot node' in result_invalid_pod.msg"
-#      when: result_invalid_pod is failed
-
-#    - name: Run reboot_nodes module (Failure due to API error)
-#      reboot_nodes:
-#        role: "worker"
-#        namespace: "openshift-machine-config-operator"
-#        daemonset_label: "machine-config-daemon"
-#        delay: 1
-#        retries: 5
-#        retry_delay: 3
-#        timeout: "{{ ovn_reboot_timeout }}"
-#      register: result_oc_failure
-#      ignore_errors: yes
-#      environment:
-#        KUBECONFIG: "/invalid/path/to/kubeconfig"  # Simulate API failure
-
-#    - name: Debug module output (OpenShift API Failure)
-#      debug:
-#        var: result_oc_failure
-
-#    - name: Assert failure due to OpenShift API error
-#      assert:
-#        that:
-#          - result_oc_failure is failed
-#          - "'Nodes did not become ready within the timeout period' in result_oc_failure.msg or 'Error' in result_oc_failure.msg"
-#      when: result_oc_failure is failed
-
-
     - name: Run reboot_nodes module for master nodes (Success Scenario)
       reboot_nodes:
         role: "master"
@@ -66,7 +16,6 @@
         retry_delay: 3
         timeout: "{{ ovn_reboot_timeout }}"
       register: result_master_success
-      #ignore_errors: yes
 
     - name: Debug module output (Master Nodes)
       debug:

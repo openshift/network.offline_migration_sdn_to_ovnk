@@ -12,3 +12,5 @@ network_provider_config: ovnKubernetesConfig
 namespace: openshift-ovn-kubernetes
 expected_network_type: OpenShiftSDN
 
+
+

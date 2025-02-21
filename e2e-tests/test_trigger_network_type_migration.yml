@@ -1,9 +1,9 @@
 ---
-- name: End-to-End Test for trigger_network_type Module (Real OpenShift)
+- name: End-to-End Test for trigger_network_type Module (Real OpenShift. Dont execute as it will trigger migration.)
   hosts: localhost
   gather_facts: no
   vars:
-    ovn_network_type: "OVNKubernetes"
+    network_type: "OVNKubernetes"
     ovn_co_timeout: 60
   tasks:
 
@@ -27,7 +27,7 @@
 
     - name: Run trigger_network_type module (Failure due to API timeout)
       trigger_network_type:
-        network_type: "{{ ovn_network_type }}"
+        network_type: "{{ network_type }}"
         timeout: 1  # Force timeout
       register: result_timeout
       ignore_errors: yes
@@ -45,10 +45,9 @@
 
     - name: Run trigger_network_type module (Success scenario)
       trigger_network_type:
-        network_type: "{{ ovn_network_type }}"
+        network_type: "{{ network_type }}"
         timeout: "{{ ovn_co_timeout }}"
       register: result_success
-      #ignore_errors: yes
 
     - name: Debug module output (Success)
       debug:
@@ -60,5 +59,3 @@
           - result_success is success
           - '"Successfully triggered OVNKubernetes deployment." in result_success.msg'
       when: result_success is success
-
-#- import_playbook: test_wait_for_network_co.yml

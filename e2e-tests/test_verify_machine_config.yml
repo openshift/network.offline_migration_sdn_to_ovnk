@@ -65,7 +65,6 @@
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_success
-      #ignore_errors: yes
 
     - name: Debug module output (Success)
       debug:

@@ -3,16 +3,15 @@
   gather_facts: false
   tasks:
 
-#    - name: Start a dummy MachineConfig update (simulating an update)
-#      command: >
-#        oc patch mcp worker --type=merge --patch '{"spec": { "paused": true } }'
-#      changed_when: false
+    - name: Start a dummy MachineConfig update (simulating an update)
+      command: >
+        oc patch mcp worker --type=merge --patch '{"spec": { "paused": true } }'
+      changed_when: false
 
     - name: Wait for MCO to start applying changes
       wait_for_mco:
         timeout: 300  # Adjust timeout as needed
       register: mco_status
-      #ignore_errors: true  # Allow failure for testing timeout behavior
 
     - name: Print MCO status
       debug:
@@ -25,7 +24,7 @@
         fail_msg: "MCO did not start updating within the timeout!"
         success_msg: "MCO started updating successfully!"
 
-#    - name: Unpause worker MachineConfigPool (clean-up)
-#      command: >
-#        oc patch mcp worker --type=merge --patch '{"spec": { "paused": false } }'
-#      changed_when: false
+    - name: Unpause worker MachineConfigPool (clean-up)
+      command: >
+        oc patch mcp worker --type=merge --patch '{"spec": { "paused": false } }'
+      changed_when: false

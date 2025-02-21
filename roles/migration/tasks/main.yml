@@ -1,8 +1,11 @@
 ---
-- name: Ensure all ClusterOperators are in the desired state
-  check_cluster_operators:
-    timeout: "{{ co_timeout }}"
-    interval: 10
+- name: Check all cluster operators are normal and mcp's are not in updating or degraded state
+  verify_cluster_operators_health:
+    max_timeout: 2700
+    pause_between_checks: 30
+    required_success_count: 3
+    checks: "{{ checks }}"
+  register: result
 
 - name: Check for conflicting CIDR ranges
   check_cidr_ranges:
@@ -35,13 +38,6 @@
   debug:
     msg: "{{ result.msg }}"
 
-#- name: Check OpenShift version
-#  check_openshift_version:
-#  register: version_result
-
-#- name: Warn user about egressIP, egressFirewall, and multicast migration
-#  debug:
-#    msg: "{{ version_result.msg }}"
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
   clean_migration_field:
@@ -50,7 +46,7 @@
 
 - name: Change network type to trigger MCO update
   change_network_type:
-    network_type: "{{ target_network_type }}"
+    network_type: "{{ network_type }}"
     timeout: "{{ change_migration_timeout }}"
 
 - name: Get OpenShift version using custom module
@@ -69,28 +65,6 @@
   debug:
     msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes. You need to manually configure them."
   when: version_major | int == 4 and version_minor | int <= 11
-
-#- name: Notify user if version < 4.12
-#  when: version_major | int  == 4 and version_minor | int <= 11
-#  debug:
-#    msg: "OpenShift version is {{ version_major }}.{{ version_minor }} Disabling migration features not available."
-
-#- name: Check if version is >= 4.12
-#  when: version_major | int == 4 and version_minor | int >= 12
-#  block:
-#    - name: Disable automatic migration of SDN features for the specified network type
-#      disable_migration_features:
-#        networkType: "OVNKubernetes"
-#        egressIP: false
-#        egressFirewall: false
-#        multicast: false
-#        retries: 3
-#        delay: 5
-#      register: migration_result
-
-#    - name: Display the result of the migration disable operation
-#      debug:
-#        msg: "{{ migration_result.msg }}"
 
 
 - name: Apply SDN Migration Settings if OpenShift is 4.12 or Higher
@@ -136,14 +110,6 @@
     timeout: "{{ mcp_completion_timeout }}"
 
 
-#- name: Wait for MCO to finish its work
-#  verify_cluster_operators_health:
-#    max_timeout: 2700
-#    pause_between_checks: 30
-#    required_success_count: 3
-#    checks: "{{ checks }}"
-#  register: result
-
 - name: Verify machine configuration status on nodes
   verify_machine_config:
     timeout: "{{ verify_machine_config_timeout }}"
@@ -151,7 +117,7 @@
 
 - name: Trigger OVN-Kubernetes deployment
   trigger_network_type:
-    network_type: "{{ ovn_network_type }}"
+    network_type: "{{ network_type }}"
     timeout: "{{ ovn_co_timeout }}"
 
 - name: Wait until the Network Cluster Operator is in PROGRESSING=True state

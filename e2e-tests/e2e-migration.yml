@@ -1,4 +1,0 @@
----
-- import_playbook: prechecks.yml
-- import_playbook: migration.yml
-- import_playbook: test_reboot.yml

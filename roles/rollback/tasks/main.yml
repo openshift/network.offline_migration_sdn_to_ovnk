@@ -32,12 +32,12 @@
 
 - name: Change network type to trigger MCO update
   change_network_type:
-    network_type: "{{ target_network_type }}"
+    network_type: "{{ network_type }}"
     timeout: "{{ change_migration_timeout }}"
 
 - name: Trigger OpenshiftSDN deployment
   trigger_network_type:
-    network_type: "{{ sdn_network_type }}"
+    network_type: "{{ network_type }}"
     timeout: "{{ sdn_co_timeout }}"
 
 - name: Warn if OpenShift version is < 4.12
@@ -45,19 +45,6 @@
     msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes. You need to manually configure them."
   when: version_major | int == 4 and version_minor | int <= 11
 
-#- name: Disable automatic migration of SDN features for the specified network type
-#  disable_migration_features:
-#    networkType: "OpenShiftSDN"
-#    egressIP: false
-#    egressFirewall: false
-#    multicast: false
-#    retries: 3
-#    delay: 5
-#  register: migration_result
-
-#- name: Display the result of the migration disable operation
-#  debug:
-#    msg: "{{ migration_result.msg }}"
 
 - name: Apply SDN Migration Settings if OpenShift is 4.12 or Higher
   block:
@@ -99,3 +86,4 @@
 - name: Wait for Multus pods to restart
   wait_multus_restart:
     timeout: "{{ sdn_multus_timeout }}"
+
