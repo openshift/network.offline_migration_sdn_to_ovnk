@@ -18,17 +18,37 @@ def run_command_with_retries(command, retries=3, delay=3):
     return None, "Unknown error"
 
 
+def check_cluster_admin():
+    """Check if the current user has cluster-admin rights."""
+    # Get current user
+    user_command = "oc whoami"
+    user, error = run_command_with_retries(user_command)
+
+    if error:
+        return None, f"Failed to execute `{user_command}`. Ensure `oc` client is configured correctly."
+
+    # Check if the user can perform all actions (indicating cluster-admin rights)
+    check_admin_command = "oc auth can-i '*' '*' --all-namespaces"
+    admin_rights, error = run_command_with_retries(check_admin_command)
+
+    if error:
+        return None, f"Failed to verify cluster-admin rights. Error: {error}"
+
+    # If the user is system:admin OR has full privileges
+    if "yes" in admin_rights or user == "system:admin":
+        return user, None
+    return user, "User does not have `cluster-admin` rights."
+
+
 def run_module():
     module = AnsibleModule(argument_spec={})
-    command = "oc whoami"
-    result, error = run_command_with_retries(command)
-    if not error:
-        if "system:admin" in result:
-            module.exit_json(changed=False, message="Logged in as `system:admin`.")
-        else:
-            module.fail_json(msg="Not logged in as `system:admin`. Please switch to `system:admin`.")
+
+    user, error = check_cluster_admin()
+
     if error:
-        module.fail_json(msg="Failed to execute `oc whoami`. Ensure `oc` client is configured correctly.")
+        module.fail_json(msg=f"Current user `{user}` does not have `cluster-admin` rights. {error}")
+
+    module.exit_json(changed=False, message=f"User `{user}` has `cluster-admin` privileges.")
 
 
 if __name__ == "__main__":

@@ -47,6 +47,7 @@
   clean_migration_field:
     timeout: "{{ clean_migration_timeout }}"
 
+
 - name: Change network type to trigger MCO update
   change_network_type:
     network_type: "{{ target_network_type }}"
@@ -64,10 +65,10 @@
     version_major: "{{ openshift_version_result.version.split('.')[0] | int }}"
     version_minor: "{{ openshift_version_result.version.split('.')[1] | int }}"
 
-#- name: Warn if OpenShift version is < 4.12
-#  debug:
-#    msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes. You need to manually configure them."
-#  when: version_major | int == 4 and version_minor | int <= 11
+- name: Warn if OpenShift version is < 4.12
+  debug:
+    msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes. You need to manually configure them."
+  when: version_major | int == 4 and version_minor | int <= 11
 
 #- name: Notify user if version < 4.12
 #  when: version_major | int  == 4 and version_minor | int <= 11
@@ -90,6 +91,22 @@
 #    - name: Display the result of the migration disable operation
 #      debug:
 #        msg: "{{ migration_result.msg }}"
+
+
+- name: Apply SDN Migration Settings if OpenShift is 4.12 or Higher
+  block:
+    - name: Disable OpenShift SDN Migration Features
+      disable_automatic_migration:
+        network_type: "{{ network_type }}"
+        egress_ip: "{{ egress_ip | default(omit) }}"
+        egress_firewall: "{{ egress_firewall | default(omit) }}"
+        multicast: "{{ multicast | default(omit) }}"
+      register: patch_result
+
+    - name: Display Patch Result
+      debug:
+        var: patch_result
+  when: version_major | int == 4 and version_minor | int >= 12  # One-time check before executing block
 
 - name: Customize network settings if parameters are provided
   configure_network_settings:

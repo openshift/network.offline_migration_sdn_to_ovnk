@@ -1,45 +1,5 @@
 ---
-- name: Migrate from OpenShift SDN to OVN-Kubernetes
-  hosts: localhost
-  gather_facts: no
-  roles:
-    - role: prechecks
-      vars:
-        ovn_sdn_migration_timeout: 180
-    - role: migration
-      vars:
-        co_timeout: 1200
-        clean_migration_timeout: 120
-        change_migration_timeout: 120
-        target_network_type: OVNKubernetes
-        mco_update_timeout: 300s
-        mcp_completion_timeout: 2700  # Timeout in seconds
-        ovn_network_type: OVNKubernetes
-        ovn_co_timeout: 120  # Timeout in seconds
-        ovn_multus_timeout: 300  # Timeout in seconds for waiting for Multus pods
-        verify_machine_config_timeout: 300
-        #checks:
-          #- "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
-          #- "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
-          #- "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
-        #mtu: 1200
-        #geneve_port: 6081
-        #ipv4_subnet: "100.64.0.0/16"
-    - role: reboot_nodes
-    - role: post_migration
-      vars:
-        checks:
-          - "oc wait co --all --for='condition=Available=True' --timeout=60s"
-          - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
-          - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
-        expected_network_type: OVNKubernetes
-        network_provider_config: openshiftSDNConfig
-        namespace: openshift-sdn
-        conflicting_cidr_ranges:
-          - "100.64.0.0/16"
-          - "169.254.169.0/29"
-          - "100.88.0.0/16"
-          - "fd98::/64"
-          - "fd69::/125"
-          - "fd97::/64"
-        clean_migration_timeout: 120
+- import_playbook: prechecks-playbook.yml
+- import_playbook: migration-playbook.yml
+- import_playbook: reboot-playbook.yml
+- import_playbook: post_migration-playbook.yml

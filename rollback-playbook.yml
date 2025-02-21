@@ -1,0 +1,16 @@
+- name: Rollback
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - role: rollback
+      vars:
+        clean_migration_timeout: 120
+        change_migration_timeout: 120
+        target_network_type: OpenShiftSDN
+        mco_update_timeout: 300s
+        mcp_completion_timeout: 2700  # Timeout in seconds
+        sdn_network_type: OpenShiftSDN
+        sdn_co_timeout: 120  # Timeout in seconds
+        sdn_multus_timeout: 300  # Timeout in seconds for waiting for Multus pods
+        verify_machine_config_timeout: 300
+        network_type: OpenShiftSDN

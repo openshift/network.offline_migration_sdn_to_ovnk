@@ -22,7 +22,13 @@ def run_command_with_retries(command, retries=3, delay=3):
 def get_nodes(role, retries, delay):
     """Retrieve a list of nodes by role (master/worker)."""
     # command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/{role} | grep -v ROLE | awk '{{print $1}}'"
-    command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/{role} --no-headers"
+    # command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/{role} --no-headers"
+
+    if role == "master":
+        command = f"oc get nodes -o custom-columns=NAME:.metadata.name -l node-role.kubernetes.io/master --no-headers"
+    else:
+        command = 'oc get nodes -o json | jq -r \'.items[] | select(.metadata.labels["node-role.kubernetes.io/master"] | not) | .metadata.name\''
+
     stdout, error = run_command_with_retries(command, retries, delay)
     if error:
         return None, error
@@ -106,7 +112,7 @@ def main():
             reboot_results.append({"node": node, "status": "success", "output": stdout})
         delay += 3  # Increment delay for subsequent nodes
 
-    # Step 3: Wait for API server to become unreachable
+    # Step 3: Wait for API server to become reachable
     wait_for_nodes_unreachable(delay)
 
     # Step 4: Wait for all nodes to become ready

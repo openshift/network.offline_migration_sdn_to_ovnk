@@ -14,6 +14,8 @@
   python3 -m pip install --user jmespath
 ```
 
+- Make sure `jq` is installed in your system.
+
 ### Using the playbooks:
 
 - Clone the repository as follows:
