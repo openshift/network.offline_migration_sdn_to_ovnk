@@ -57,7 +57,7 @@ def patch_network(network_type, egress_ip, egress_firewall, multicast):
 def main():
     module = AnsibleModule(
         argument_spec={
-            "network_type": {"type": "str", "required": True},  # Takes OpenShiftSDN or OVNKubernetes
+            "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True},  # Takes OpenShiftSDN or OVNKubernetes
             "egress_ip": {"type": "bool", "default": None},
             "egress_firewall": {"type": "bool", "default": None},
             "multicast": {"type": "bool", "default": None}

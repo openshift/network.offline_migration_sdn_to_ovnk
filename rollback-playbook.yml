@@ -12,3 +12,11 @@
         sdn_co_timeout: 120  # Timeout in seconds
         sdn_multus_timeout: 300  # Timeout in seconds for waiting for Multus pods
         verify_machine_config_timeout: 300
+        egress_ip: false
+        egress_firewall: false
+        multicast: false
+        configure_network_type: openshiftSDN
+        mtu: 1400
+        vxlanPort: 4790
+
+

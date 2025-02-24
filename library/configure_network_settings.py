@@ -38,7 +38,7 @@ def run_patch_command(module, patch_command, retries, delay):
 def main():
     module = AnsibleModule(
         argument_spec={
-            "network_type": {"type": "str", "choices": ["ovnKubernetes", "openshiftSDN"], "required": True},
+            "configure_network_type": {"type": "str", "choices": ["ovnKubernetes", "openshiftSDN"], "required": True},
             "mtu": {"type": "int", "required": False},
             "geneve_port": {"type": "int", "required": False},
             "ipv4_subnet": {"type": "str", "required": False},
@@ -49,7 +49,7 @@ def main():
         supports_check_mode=True,
     )
 
-    network_type = module.params["network_type"]
+    network_type = module.params["configure_network_type"]
     mtu = module.params["mtu"]
     geneve_port = module.params["geneve_port"]
     ipv4_subnet = module.params["ipv4_subnet"]
@@ -71,16 +71,25 @@ def main():
             patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["genevePort"] = geneve_port
         if ipv4_subnet:
             patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["v4InternalSubnet"] = ipv4_subnet
+        if vxlanPort:
+            module.warn("vxlanPort can't be set in ovnKubernetesConfig")
+        # Prepare and execute patch command
+        patch_command = f"oc patch Network.operator.openshift.io cluster --type=merge --patch '{json.dumps(patch_data)}'"
+        run_patch_command(module, patch_command, retries, delay)
 
     elif network_type == "openshiftSDN":
         if mtu:
             patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["mtu"] = mtu
         if vxlanPort:
             patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["vxlanPort"] = vxlanPort
+        if geneve_port or  ipv4_subnet:
+            module.warn("geneve_port or ipv4_subnet can't be set in openshiftSDNConfig")
+        # Prepare and execute patch command
+        patch_command = f"oc patch Network.operator.openshift.io cluster --type=merge --patch '{json.dumps(patch_data)}'"
+        run_patch_command(module, patch_command, retries, delay)
 
-    # Prepare and execute patch command
-    patch_command = f"oc patch Network.operator.openshift.io cluster --type=merge --patch '{json.dumps(patch_data)}'"
-    run_patch_command(module, patch_command, retries, delay)
+    else:
+        module.exit_json(changed=False, msg="No changes patched. No valid parameters provided.")
 
 
 if __name__ == "__main__":

@@ -63,7 +63,7 @@
 
 - name: Customize network settings if parameters are provided
   configure_network_settings:
-    network_type: openshiftSDN
+    configure_network_type: openshiftSDN
     mtu: "{{ mtu | default(omit) }}"
     vxlanPort: "{{ vxlanPort | default(omit) }}"
     retries: 3

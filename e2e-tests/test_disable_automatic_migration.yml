@@ -79,9 +79,10 @@
     - name: Assert failure for invalid network type
       assert:
         that:
-          - test_result_invalid_network is failed
-          - "'Invalid network_type' in test_result_invalid_network.msg"
+            - test_result_invalid_network is failed
+            - "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
       when: test_result_invalid_network is failed
+      #when: "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
 
     # ❌ Test Case 4: No Parameters Provided
     - name: Run patch_network module without parameters

@@ -25,6 +25,13 @@
           - "oc wait co --all --for='condition=Available=True' --timeout=60s"
           - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
           - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
-          #- "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
           - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
+        egress_ip: false
+        egress_firewall: false
+        multicast: false
+        configure_network_type: ovnKubernetes
+        mtu: 1400
+        geneve_port: 6081
+        ipv4_subnet: "192.168.1.0/24"
+

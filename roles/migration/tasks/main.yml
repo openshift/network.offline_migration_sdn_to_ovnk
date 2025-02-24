@@ -84,7 +84,7 @@
 
 - name: Customize network settings if parameters are provided
   configure_network_settings:
-    network_type: ovnKubernetes
+    configure_network_type: ovnKubernetes
     mtu: "{{ mtu | default(omit) }}"
     geneve_port: "{{ geneve_port | default(omit) }}"
     ipv4_subnet: "{{ ipv4_subnet | default(omit) }}"
