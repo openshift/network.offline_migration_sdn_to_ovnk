@@ -20,7 +20,7 @@ def run_command(command):
 def get_machine_config_status(timeout):
     start_time = time.time()
     while time.time() - start_time < timeout:
-        output, error = run_command("oc describe node | egrep 'hostname|machineconfig'")
+        output, error = run_command("oc describe node | grep -E 'hostname|machineconfig'")
         if not error:
             nodes = re.findall(
                 r"kubernetes\.io/hostname=(?P<hostname>.+)\n.*currentConfig: (?P<currentConfig>.+)\n.*desiredConfig: (?P<desiredConfig>.+)\n.*state: (?P<state>.+)",

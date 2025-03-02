@@ -23,6 +23,7 @@ RUN yum install -y \
       python3-pip \
       python3-setuptools \
       gcc \
+      jq  \
   && python3 -m pip install --no-cache-dir --upgrade pip \
   && python3 -m pip install --no-cache-dir ansible \
   && yum clean all \
