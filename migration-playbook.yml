@@ -27,9 +27,10 @@
           - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
-        #egress_ip: false
-        #egress_firewall: false
-        #multicast: false
+        disable_auto_migration: true # Enables disable_automatic_migration
+        egress_ip: false
+        egress_firewall: false
+        multicast: false
         configure_network_type: ovnKubernetes
         #mtu: 1400
         #geneve_port: 6081

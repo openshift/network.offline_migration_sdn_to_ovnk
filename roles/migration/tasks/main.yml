@@ -43,8 +43,17 @@
   clean_migration_field:
     timeout: "{{ clean_migration_timeout }}"
 
+- name: Check if disable auto migration is set
+  set_fact:
+    disable_auto_migration: "{{ disable_auto_migration }}"
+  failed_when: disable_auto_migration is not defined
+
+- name: Display message when disable_auto_migration is set to true
+  debug:
+    msg: "disable_auto_migration is set to {{ disable_auto_migration }}."
 
 - name: Change network type to trigger MCO update
+  when: disable_auto_migration == false
   change_network_type:
     network_type: "{{ network_type }}"
     timeout: "{{ change_migration_timeout }}"
@@ -80,7 +89,7 @@
     - name: Display Patch Result
       debug:
         var: patch_result
-  when: version_major | int == 4 and version_minor | int >= 12  # One-time check before executing block
+  when: version_major | int == 4 and version_minor | int >= 12 and disable_auto_migration == true  # One-time check before executing block
 
 - name: Customize network settings if parameters are provided
   configure_network_settings:
