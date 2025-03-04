@@ -2,18 +2,16 @@ from ansible.module_utils.basic import AnsibleModule
 import ipaddress
 import json
 import time
-import subprocess
 
 
-def run_command(command):
-    """Run a shell command and return its output or raise an error."""
-    try:
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return result.stdout.strip(), None
-    except subprocess.CalledProcessError as err:
-        return None, Exception(f"Command '{command}' failed: {err.stderr.strip()}")
+def run_command(module, command):
+    """Run a shell command safely using module.run_command and return output or raise an error."""
+    rc, stdout, stderr = module.run_command(command)
+
+    if rc == 0:
+        return stdout.strip(), None  # Success
+
+    return None, f"Command '{' '.join(command)}' failed: {stderr.strip()}"
 
 
 def get_used_cidrs(module, timeout):
@@ -22,7 +20,7 @@ def get_used_cidrs(module, timeout):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            output, error = run_command(command)
+            output, error = run_command(module, command)
             if error:
                 module.warn(f"Retrying as got an error: {error}")
             time.sleep(3)

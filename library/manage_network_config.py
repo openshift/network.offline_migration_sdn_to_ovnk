@@ -1,27 +1,39 @@
 from ansible.module_utils.basic import AnsibleModule
 import time
-import subprocess
+import json
 
 
-def run_command(command):
-    """Run a shell command and return its output or raise an error."""
-    try:
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return result.stdout.strip(), None
-    except subprocess.CalledProcessError as err:
-        return None, Exception(f"Command '{command}' failed: {err.stderr.strip()}")
+def run_command(module, command):
+    """Run a shell command safely using module.run_command and return output or raise an error."""
+    rc, stdout, stderr = module.run_command(command)
+
+    if rc == 0:
+        return stdout.strip(), None  # Success
+
+    return None, f"Command '{' '.join(command)}' failed: {stderr.strip()}"
 
 
 def patch_network_operator(module, timeout, network_provider_config):
     """Patch the Network operator configuration."""
-    command = f"oc patch Network.operator.openshift.io cluster --type='merge' --patch '{{\"spec\":{{\"defaultNetwork\":{{\"{network_provider_config}\":null}}}}}}'"
+    """Patch the Network operator configuration safely using json.dumps."""
+
+    patch_data = {
+        "spec": {
+            "defaultNetwork": {
+                network_provider_config: None  # Setting config to `null`
+            }
+        }
+    }
+
+    command = [
+        "oc", "patch", "Network.operator.openshift.io", "cluster",
+        "--type=merge", "--patch", json.dumps(patch_data)
+    ]
 
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            output, error = run_command(command)
+            output, error = run_command(module, command)
             if error:
                 module.warn(f"Retrying as got an error: {error}")
                 time.sleep(3)
@@ -37,7 +49,7 @@ def delete_namespace(module, timeout, namespace):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            output, error = run_command(command)
+            output, error = run_command(module, command)
             if error:
                 module.warn(f"Retrying as got an error: {error}")
                 time.sleep(3)

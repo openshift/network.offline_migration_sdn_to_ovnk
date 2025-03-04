@@ -3,24 +3,23 @@
 from ansible.module_utils.basic import AnsibleModule
 import re
 import time
-import subprocess
 
 
-def run_command(command):
-    """Run a shell command and return its output or raise an error."""
-    try:
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return result.stdout.strip(), None
-    except subprocess.CalledProcessError as err:
-        return None, Exception(f"Command '{command}' failed: {err.stderr.strip()}")
+def run_command(module, command):
+    """Run a shell command safely using module.run_command and return output or raise an error."""
+    rc, stdout, stderr = module.run_command(command)
+
+    if rc == 0:
+        return stdout.strip(), None  # Success
+
+    return None, f"Command '{' '.join(command)}' failed: {stderr.strip()}"
 
 
-def get_machine_config_status(timeout):
+def get_machine_config_status(module, timeout):
+    nodes = []
     start_time = time.time()
     while time.time() - start_time < timeout:
-        output, error = run_command("oc describe node | grep -E 'hostname|machineconfig'")
+        output, error = run_command(module, "oc describe node | grep -E 'hostname|machineconfig'")
         if not error:
             nodes = re.findall(
                 r"kubernetes\.io/hostname=(?P<hostname>.+)\n.*currentConfig: (?P<currentConfig>.+)\n.*desiredConfig: (?P<desiredConfig>.+)\n.*state: (?P<state>.+)",
@@ -35,7 +34,7 @@ def verify_machine_config(module, config_name, network_type):
     start_time = time.time()
     while time.time() - start_time < module.params["timeout"]:
         try:
-            output, error = run_command(f"oc get machineconfig {config_name} -o yaml | grep ExecStart")
+            output, error = run_command(module, f"oc get machineconfig {config_name} -o yaml | grep ExecStart")
             if not error:
                 if network_type == "OVNKubernetes":
                     if "ExecStart=/usr/local/bin/configure-ovs.sh OVNKubernetes" in output:
@@ -62,7 +61,7 @@ def main():
     timeout = module.params["timeout"]
     network_type = module.params["network_type"]
     try:
-        nodes = get_machine_config_status(timeout)
+        nodes = get_machine_config_status(module, timeout)
         issues = []
         for node in nodes:
             if node["state"] != "Done":

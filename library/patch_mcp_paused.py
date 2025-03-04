@@ -1,19 +1,22 @@
 from ansible.module_utils.basic import AnsibleModule
-import subprocess
 import time
+import json
 
 
-def run_command_with_retries(command, retries=3, delay=3):
+def run_command_with_retries(module, command, retries=3, delay=3):
     """Execute a shell command with retries on failure."""
     for attempt in range(retries):
-        try:
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-            return result.stdout.strip(), None
-        except subprocess.CalledProcessError as e:
-            if attempt < retries - 1:
-                time.sleep(delay)
-            else:
-                return None, f"Command failed after {retries} attempts: {e.stderr.strip()}"
+        rc, stdout, stderr = module.run_command(command)
+
+        if rc == 0:
+            return stdout.strip(), None  # Success
+
+        if attempt < retries - 1:
+            module.warn(f"Retrying in {delay} seconds due to error: {stderr.strip()}")
+            time.sleep(delay)  # Wait before retrying
+        else:
+            return None, f"Command failed after {retries} attempts: {stderr.strip()}"
+
     return None, "Unknown error"
 
 
@@ -29,17 +32,22 @@ def main():
     paused = module.params["paused"]
 
     # Build the patch command
-    paused_value = "true" if paused else "false"
-    patch_command = (
-        f"oc patch MachineConfigPool {pool_name} --type='merge' "
-        f"--patch '{{\"spec\":{{\"paused\":{paused_value}}}}}'"
-    )
+    paused_value = True if paused else False
+
+    # Build the patch command
+    patch = {"spec": {"paused": paused_value}}
+
+    patch_command = [
+        "oc", "patch", "MachineConfigPool", pool_name, "--type=merge", "--patch",
+        json.dumps(patch)
+    ]
 
     # Execute the command
     if module.check_mode:
         module.exit_json(changed=True, msg=f"Check mode: would patch {pool_name} with paused={paused_value}.")
 
-    _, error = run_command_with_retries(patch_command)
+
+    _, error = run_command_with_retries(module, patch_command)
     if error:
         module.fail_json(msg=f"Failed to patch {pool_name}: {error}")
 

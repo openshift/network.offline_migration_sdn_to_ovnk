@@ -1,26 +1,28 @@
 #!/usr/bin/python
 
 from ansible.module_utils.basic import AnsibleModule
-import subprocess
 import json
 import time
 
 
-def run_command_with_retries(command, retries=3, delay=5):
-    """Runs a shell command with retries on failure."""
+def run_command_with_retries(module, command, retries=3, delay=3):
+    """Execute a shell command with retries on failure."""
     for attempt in range(retries):
-        try:
-            result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
-            return result.stdout.strip(), None
-        except subprocess.CalledProcessError as err:
-            if attempt < retries - 1:
-                time.sleep(delay)  # Wait before retrying
-            else:
-                return None, f"Command '{command}' failed after {retries} attempts: {err.stderr.strip()}"
+        rc, stdout, stderr = module.run_command(command)
+
+        if rc == 0:
+            return stdout.strip(), None  # Success
+
+        if attempt < retries - 1:
+            module.warn(f"Retrying in {delay} seconds due to error: {stderr.strip()}")
+            time.sleep(delay)  # Wait before retrying
+        else:
+            return None, f"Command failed after {retries} attempts: {stderr.strip()}"
+
     return None, "Unknown error"
 
 
-def patch_network(network_type, egress_ip, egress_firewall, multicast):
+def patch_network(module, network_type, egress_ip, egress_firewall, multicast):
     """Patch the Network.operator.openshift.io cluster resource with generic networkType."""
 
     # Validate network type
@@ -31,14 +33,23 @@ def patch_network(network_type, egress_ip, egress_firewall, multicast):
     if egress_ip is None and egress_firewall is None and multicast is None:
         return None, "No values provided. Automatic migration will be applied."
 
-    patch_data = {
-        "spec": {
-            "migration": {
-                "networkType": network_type,
-                "features": {}
+    if network_type == "OVNKubernetes":
+        patch_data = {
+            "spec": {
+                "migration": {
+                    "networkType": network_type,
+                    "features": {}
+                }
             }
         }
-    }
+    elif network_type == "OpenShiftSDN":
+        patch_data = {
+            "spec": {
+                "migration": {
+                    "features": {}
+                }
+            }
+        }
 
     if egress_ip is not None:
         patch_data["spec"]["migration"]["features"]["egressIP"] = egress_ip
@@ -48,7 +59,7 @@ def patch_network(network_type, egress_ip, egress_firewall, multicast):
         patch_data["spec"]["migration"]["features"]["multicast"] = multicast
 
     patch_command = f"oc patch Network.operator.openshift.io cluster --type='merge' --patch '{json.dumps(patch_data)}'"
-    output, error = run_command_with_retries(patch_command, retries=3, delay=5)
+    output, error = run_command_with_retries(module, patch_command, retries=3, delay=5)
     if error:
         return None, error
     return output, None
@@ -57,7 +68,7 @@ def patch_network(network_type, egress_ip, egress_firewall, multicast):
 def main():
     module = AnsibleModule(
         argument_spec={
-            "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True},  # Takes OpenShiftSDN or OVNKubernetes
+            "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True}, # Takes OpenShiftSDN or OVNKubernetes
             "egress_ip": {"type": "bool", "default": None},
             "egress_firewall": {"type": "bool", "default": None},
             "multicast": {"type": "bool", "default": None}
@@ -71,11 +82,12 @@ def main():
     multicast = module.params["multicast"]
 
     # Patch the network operator
-    output, error = patch_network(network_type, egress_ip, egress_firewall, multicast)
+    output, error = patch_network(module, network_type, egress_ip, egress_firewall, multicast)
     if error:
         module.exit_json(changed=False, msg=error)
 
-    module.exit_json(changed=True, msg=f"Network operator migration settings updated for {network_type}.", output=output)
+    module.exit_json(changed=True, msg=f"Network operator migration settings updated for {network_type}.",
+                     output=output)
 
 
 if __name__ == "__main__":

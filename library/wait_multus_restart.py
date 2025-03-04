@@ -1,22 +1,20 @@
 #!/usr/bin/python
 
 from ansible.module_utils.basic import AnsibleModule
-import subprocess
 import time
 
 
-def run_command(command):
-    """Run a shell command and return its output or raise an error."""
-    try:
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return result.stdout.strip(), None
-    except subprocess.CalledProcessError as err:
-        return None, Exception(f"Command '{command}' failed: {err.stderr.strip()}")
+def run_command(module, command):
+    """Run a shell command safely using module.run_command and return output or raise an error."""
+    rc, stdout, stderr = module.run_command(command)
+
+    if rc == 0:
+        return stdout.strip(), None  # Success
+
+    return None, f"Command '{' '.join(command)}' failed: {stderr.strip()}"
 
 
-def wait_for_multus_pods(timeout):
+def wait_for_multus_pods(module, timeout):
     """Wait for the Multus pods to restart."""
     start_time = time.time()
     interval = 10
@@ -24,7 +22,7 @@ def wait_for_multus_pods(timeout):
     while time.time() - start_time < timeout:
         try:
             command = "oc rollout status ds/multus -n openshift-multus"
-            output, error = run_command(command)
+            output, error = run_command(module, command)
             if not error:
                 if "successfully rolled out" in output:
                     return True
@@ -46,7 +44,7 @@ def main():
     timeout = module.params["timeout"]
 
     try:
-        if wait_for_multus_pods(timeout):
+        if wait_for_multus_pods(module, timeout):
             module.exit_json(changed=False, msg="Multus pods restarted successfully.")
         else:
             module.fail_json(msg="Timeout reached while waiting for Multus pods to restart.")

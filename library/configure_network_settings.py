@@ -1,22 +1,24 @@
 #!/usr/bin/python
 
 from ansible.module_utils.basic import AnsibleModule
-import subprocess
 import time
 import json
 
 
-def run_command_with_retries(command, retries=3, delay=3):
+def run_command_with_retries(module, command, retries=3, delay=3):
     """Execute a shell command with retries on failure."""
     for attempt in range(retries):
-        try:
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-            return result.stdout.strip(), None
-        except subprocess.CalledProcessError as e:
-            if attempt < retries - 1:
-                time.sleep(delay)
-            else:
-                return None, f"Command failed after {retries} attempts: {e.stderr.strip()}"
+        rc, stdout, stderr = module.run_command(command)
+
+        if rc == 0:
+            return stdout.strip(), None  # Success
+
+        if attempt < retries - 1:
+            module.warn(f"Retrying in {delay} seconds due to error: {stderr.strip()}")
+            time.sleep(delay)  # Wait before retrying
+        else:
+            return None, f"Command failed after {retries} attempts: {stderr.strip()}"
+
     return None, "Unknown error"
 
 
@@ -26,7 +28,7 @@ def run_patch_command(module, patch_command, retries, delay):
         module.exit_json(changed=True, msg="Check mode: Patch command prepared", command=patch_command)
 
     try:
-        output, error = run_command_with_retries(patch_command, retries=retries, delay=delay)
+        output, error = run_command_with_retries(module, patch_command, retries=retries, delay=delay)
         if not error:
             module.exit_json(changed=True, msg="Network configuration patched successfully.", output=output)
         else:
