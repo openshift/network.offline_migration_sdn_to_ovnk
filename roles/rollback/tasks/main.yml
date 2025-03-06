@@ -16,6 +16,14 @@
     msg: "❌ Rollback is not supported from 4.17 as OpenShiftSDN has been removed from OCP 4.17."
   when: version_major | int == 4 and version_minor | int == 17
 
+- name: Check all cluster operators are normal and mcp's are not in updating or degraded state
+  verify_cluster_operators_health:
+    max_timeout: 2700
+    pause_between_checks: 30
+    required_success_count: 3
+    checks: "{{ checks }}"
+  register: result
+
 - name: Pause updates for master MachineConfigPool
   patch_mcp_paused:
     pool_name: "master"

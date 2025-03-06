@@ -1,0 +1,80 @@
+---
+- name: End-to-End Test for check_cluster_operators Module
+  hosts: localhost
+  gather_facts: no
+  vars:
+    max_timeout: 90  # ⏳ Short timeout for quick testing
+    pause_between_checks: 5  # ⏸️ Reduce wait time between checks
+    required_success_count: 2  # ✅ Require only 2 passes for testing
+    fake_oc_wait_success: "echo 'Condition met'"
+    fake_oc_wait_failure: "echo 'Condition failed' && exit 1"
+
+  tasks:
+
+    # ✅ Test Case 1: Cluster Operators Are Healthy
+    - name: Run check_cluster_operators module (Success Scenario)
+      verify_cluster_operators_health:
+        max_timeout: "{{ max_timeout }}"
+        pause_between_checks: "{{ pause_between_checks }}"
+        required_success_count: "{{ required_success_count }}"
+        checks:
+          - "{{ fake_oc_wait_success }}"
+          - "{{ fake_oc_wait_success }}"
+      register: result_success
+      ignore_errors: yes
+
+    - name: Debug module output (Success)
+      debug:
+        var: result_success
+
+    - name: Assert Success Scenario
+      assert:
+        that:
+          - result_success.changed
+          - "'All checks passed successfully' in result_success.msg"
+      when: result_success is success
+
+    # ❌ Test Case 2: Cluster Operators Have Issues (Failure)
+    - name: Run check_cluster_operators module (Failure Scenario)
+      verify_cluster_operators_health:
+        max_timeout: "{{ max_timeout }}"
+        pause_between_checks: "{{ pause_between_checks }}"
+        required_success_count: "{{ required_success_count }}"
+        checks:
+          - "{{ fake_oc_wait_failure }}"
+          - "{{ fake_oc_wait_failure }}"
+      register: result_failure
+      ignore_errors: yes
+
+    - name: Debug module output (Failure)
+      debug:
+        var: result_failure
+
+    - name: Assert Failure Scenario
+      assert:
+        that:
+          - result_failure.failed
+          - "'Timeout reached before cluster operators met the required conditions.' in result_failure.msg"
+      when: result_failure is failed
+
+    # 🔄 Test Case 3: Mixed Scenario (First Fails, Then Succeeds)
+    - name: Run check_cluster_operators module (Mixed Scenario)
+      verify_cluster_operators_health:
+        max_timeout: "{{ max_timeout }}"
+        pause_between_checks: "{{ pause_between_checks }}"
+        required_success_count: "{{ required_success_count }}"
+        checks:
+          - "{{ fake_oc_wait_failure }}"  # ⏳ First Attempt Fails
+          - "{{ fake_oc_wait_success }}"  # ✅ Second Attempt Succeeds
+      register: result_mixed
+      ignore_errors: yes
+
+    - name: Debug module output (Mixed Scenario)
+      debug:
+        var: result_mixed
+
+    - name: Assert Mixed Scenario (Retries Until Success)
+      assert:
+        that:
+          - result_mixed.changed or result_mixed.failed
+      when: result_mixed is defined

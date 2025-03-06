@@ -73,3 +73,11 @@
 - name: Notify user about the result
   debug:
     msg: "{{ result.msg }}"
+
+- name: Check all cluster operators back to normal
+  verify_cluster_operators_health:
+    max_timeout: 2700
+    pause_between_checks: 30
+    required_success_count: 3
+    checks: "{{ checks }}"
+  register: result
