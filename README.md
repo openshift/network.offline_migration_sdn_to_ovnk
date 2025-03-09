@@ -37,3 +37,34 @@ ansible-playbook -v playbook-migration.yml
 ```shell
 ansible-playbook -v playbook-rollback.yml
 ```
+
+- Disable auto-migration features
+
+In `migration-playbook.yml` or `rollback-playbook.yml` based on whether you are migrating or rollback
+please set the following:
+
+To disable auto-migration of features:
+```shell
+        disable_auto_migration: true # true enables disable_automatic_migration. You will need to set egress_ip, egress_firewall and multicast as follows:
+        egress_ip: false
+        egress_firewall: false
+        multicast: false
+```
+
+To keep automigration enabled:
+```shell
+        disable_auto_migration: false
+```
+
+- Customize network features:
+  - In `migration-playbook.yml` you can set the following fields with custom values:
+```shell
+        mtu: 1400
+        geneve_port: 6081
+        ipv4_subnet: "100.64.0.0/16"
+```
+  - In the rollback-playbook.yml you can set the following fields with custom values:
+```shell
+        mtu: 1400
+        vxlanPort: 4790
+```
