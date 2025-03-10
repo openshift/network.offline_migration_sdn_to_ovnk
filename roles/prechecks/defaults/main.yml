@@ -1,0 +1,10 @@
+---
+co_timeout: 180 #1200 as per shell script
+# Default conflicting CIDR ranges used by OVN-Kubernetes
+conflicting_cidr_ranges:
+  - "100.64.0.0/16"
+  - "169.254.169.0/29"
+  - "100.88.0.0/16"
+  - "fd98::/64"
+  - "fd69::/125"
+  - "fd97::/64"

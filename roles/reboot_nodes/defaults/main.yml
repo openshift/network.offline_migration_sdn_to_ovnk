@@ -1,0 +1,4 @@
+daemonset_name: "machine-config-daemon"
+reboot_delay: 1
+delay: 5
+

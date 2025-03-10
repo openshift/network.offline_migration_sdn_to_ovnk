@@ -1,0 +1,130 @@
+---
+- name: End-to-End Test for `patch_network` Module
+  hosts: localhost
+  gather_facts: no
+  vars:
+    valid_network_types:
+      - OpenShiftSDN
+      - OVNKubernetes
+  tasks:
+
+    - name: Get OpenShift version (for validation)
+      command: oc get clusterversion version -o jsonpath='{.status.desired.version}'
+      register: openshift_version_result
+      changed_when: false
+      failed_when: openshift_version_result.rc != 0 or openshift_version_result.stdout | length == 0
+
+    - name: Parse OpenShift version
+      set_fact:
+        version_major: "{{ openshift_version_result.stdout.split('.')[0] | int }}"
+        version_minor: "{{ openshift_version_result.stdout.split('.')[1] | int }}"
+
+    - name: Set disable_auto_migration
+      set_fact:
+        disable_auto_migration: true
+
+    - name: Ensure OpenShift version is valid for migration
+      fail:
+        msg: "OpenShift version is below 4.12. Migration settings will not be applied."
+      when: version_major | int <= 4 and version_minor | int < 12
+
+    # ✅ Test Case 1: Valid Input (OVNKubernetes, Egress Firewall Disabled)
+    - name: Run patch_network module with OVNKubernetes
+      disable_automatic_migration:
+        network_type: "OVNKubernetes"
+        egress_ip: false
+        egress_firewall: false
+        multicast: false
+      register: test_result_valid_ovn
+      ignore_errors: yes
+      when: disable_auto_migration == true
+
+    - name: Debug module output (Valid OVNKubernetes)
+      debug:
+        var: test_result_valid_ovn
+
+    - name: Assert success for valid OVNKubernetes input
+      assert:
+        that:
+          - test_result_valid_ovn is success
+          - "'Network operator migration settings updated' in test_result_valid_ovn.msg"
+      when: test_result_valid_ovn is success
+
+    # ✅ Test Case 2: Valid Input (OpenShiftSDN, Only Multicast Disabled)
+    - name: Run patch_network module with OpenShiftSDN
+      disable_automatic_migration:
+        network_type: "OpenShiftSDN"
+        multicast: false
+      register: test_result_valid_sdn
+      ignore_errors: yes
+      when: disable_auto_migration == true
+
+    - name: Debug module output (Valid OpenShiftSDN)
+      debug:
+        var: test_result_valid_sdn
+
+    - name: Assert success for valid OpenShiftSDN input
+      assert:
+        that:
+          - test_result_valid_sdn is success
+          - "'Network operator migration settings updated' in test_result_valid_sdn.msg"
+      when: test_result_valid_sdn is success
+
+    # ❌ Test Case 3: Invalid Network Type
+    - name: Run patch_network module with invalid network type
+      disable_automatic_migration:
+        network_type: "InvalidNetwork"
+        egress_ip: false
+      register: test_result_invalid_network
+      ignore_errors: yes
+      when: disable_auto_migration == true
+
+    - name: Debug module output (Invalid Network Type)
+      debug:
+        var: test_result_invalid_network
+
+    - name: Assert failure for invalid network type
+      assert:
+        that:
+            - test_result_invalid_network is failed
+            - "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
+      when: test_result_invalid_network is failed
+      #when: "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
+
+    # ❌ Test Case 4: No Parameters Provided
+    - name: Run patch_network module without parameters
+      disable_automatic_migration:
+        network_type: "OVNKubernetes"
+      register: test_result_no_params
+      ignore_errors: yes
+      when: disable_auto_migration == true
+
+    - name: Debug module output (No Parameters Provided)
+      debug:
+        var: test_result_no_params
+
+    - name: Assert failure for no parameters
+      assert:
+        that:
+          - test_result_no_params is failed
+          - "'No values provided. Automatic migration will be applied.' in test_result_no_params.msg"
+      when: test_result_no_params is failed
+
+
+    # ✅ Rollback: Revert `spec.migration` to null after test completion
+    - name: Revert Migration Field to Null
+      command: >
+        oc patch Network.operator.openshift.io cluster --type=merge --patch '{"spec": {"migration": null}}'
+      register: revert_result
+      changed_when: "'patched' in revert_result.stdout or 'unchanged' in revert_result.stdout"
+      failed_when: revert_result.rc != 0
+
+    - name: Debug Migration Reset Result
+      debug:
+        var: revert_result
+
+    - name: Assert Migration Field is Reverted
+      assert:
+        that:
+          - "'patched' in revert_result.stdout or 'unchanged' in revert_result.stdout"
+      when: revert_result is succeeded

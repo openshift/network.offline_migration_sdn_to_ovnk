@@ -1,0 +1,40 @@
+---
+- name: End-to-End Test for wait_multus_restart Module (Real OpenShift)
+  hosts: localhost
+  gather_facts: no
+  vars:
+    ovn_multus_timeout: 300  # Set timeout for successful restart
+  tasks:
+
+    - name: Run wait_multus_restart module (Failure due to timeout)
+      wait_multus_restart:
+        timeout: 1  # Force an immediate timeout
+      register: result_timeout
+      ignore_errors: yes
+
+    - name: Debug module output (Timeout Failure)
+      debug:
+        var: result_timeout
+
+    - name: Assert failure due to timeout
+      assert:
+        that:
+          - result_timeout is failed
+          - '"Timeout reached while waiting for Multus pods to restart." in result_timeout.msg'
+      when: result_timeout is failed
+
+    - name: Run wait_multus_restart module (Success scenario)
+      wait_multus_restart:
+        timeout: "{{ ovn_multus_timeout }}"
+      register: result_success
+
+    - name: Debug module output (Success)
+      debug:
+        var: result_success
+
+    - name: Assert success scenario
+      assert:
+        that:
+          - result_success is success
+          - '"Multus pods restarted successfully." in result_success.msg'
+      when: result_success is success

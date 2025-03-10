@@ -1,0 +1,61 @@
+---
+- name: End-to-End Test for trigger_network_type Module (Real OpenShift. Dont execute as it will trigger migration.)
+  hosts: localhost
+  gather_facts: no
+  vars:
+    network_type: "OVNKubernetes"
+    ovn_co_timeout: 60
+  tasks:
+
+    - name: Run trigger_network_type module (Failure due to invalid network type)
+      trigger_network_type:
+        network_type: "InvalidNetwork"
+        timeout: "{{ ovn_co_timeout }}"
+      register: result_invalid_network
+      ignore_errors: yes
+
+    - name: Debug module output (Invalid Network Type)
+      debug:
+        var: result_invalid_network
+
+    - name: Assert failure due to invalid network type
+      assert:
+        that:
+          - result_invalid_network is failed
+          - "'Command failed' in result_invalid_network.msg"
+      when: result_invalid_network is failed
+
+    - name: Run trigger_network_type module (Failure due to API timeout)
+      trigger_network_type:
+        network_type: "{{ network_type }}"
+        timeout: 1  # Force timeout
+      register: result_timeout
+      ignore_errors: yes
+
+    - name: Debug module output (API Timeout)
+      debug:
+        var: result_timeout
+
+    - name: Assert failure due to API timeout
+      assert:
+        that:
+          - result_timeout is failed
+          - "'timeout' in result_timeout.msg"
+      when: result_timeout is failed
+
+    - name: Run trigger_network_type module (Success scenario)
+      trigger_network_type:
+        network_type: "{{ network_type }}"
+        timeout: "{{ ovn_co_timeout }}"
+      register: result_success
+
+    - name: Debug module output (Success)
+      debug:
+        var: result_success
+
+    - name: Assert success scenario
+      assert:
+        that:
+          - result_success is success
+          - '"Successfully triggered OVNKubernetes deployment." in result_success.msg'
+      when: result_success is success

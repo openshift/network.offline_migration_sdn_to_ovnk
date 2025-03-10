@@ -1,0 +1,6 @@
+---
+- import_playbook: prechecks-playbook.yml
+- import_playbook: rollback-playbook.yml
+- import_playbook: reboot-playbook.yml
+- import_playbook: post_rollback-playbook.yml
+
