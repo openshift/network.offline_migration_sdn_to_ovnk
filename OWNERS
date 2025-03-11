@@ -4,4 +4,4 @@ approvers:
   - core-approvers
 
 component: Networking
-subcomponent: cluster-network-operator
+subcomponent: ansible-ocp-networking-migration-rollback
