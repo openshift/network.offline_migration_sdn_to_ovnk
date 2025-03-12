@@ -1,4 +1,7 @@
-#!/bin/bash -eu
+#!/bin/bash
+
+# Enable strict error handling
+set -euo pipefail
 
 # Define variables
 LOGFILE="cni_migration.log"
@@ -27,7 +30,10 @@ check_playbook() {
 
 # Function to get current CNI type
 get_cni_type() {
-    CNI_TYPE=$(oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.type}' 2>>"$LOGFILE")
+    if ! CNI_TYPE=$(oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.type}' 2>>"$LOGFILE"); then
+        log "❌ Error: Failed to fetch CNI type from OpenShift."
+        exit 1
+    fi
     echo "$CNI_TYPE"
 }
 
@@ -41,19 +47,23 @@ CNI=$(get_cni_type)
 if [[ "$CNI" == "OpenShiftSDN" ]]; then
     log "Detected CNI: OpenShiftSDN. Running migration playbook..."
     check_playbook "$MIGRATION_PLAYBOOK"  # Check if playbook exists
-    ansible-playbook "$MIGRATION_PLAYBOOK" | tee -a "$LOGFILE" || {
-        log "❌ Migration playbook failed!"
+
+    # Run ansible-playbook and check for failures
+    if ! ansible-playbook "$MIGRATION_PLAYBOOK" | tee -a "$LOGFILE"; then
+        log "❌ Migration playbook failed or stopped unexpectedly!"
         exit 1
-    }
+    fi
     log "✅ Migration playbook completed successfully."
 
 elif [[ "$CNI" == "OVNKubernetes" ]]; then
     log "Detected CNI: OVNKubernetes. Running rollback playbook..."
     check_playbook "$ROLLBACK_PLAYBOOK"  # Check if playbook exists
-    ansible-playbook "$ROLLBACK_PLAYBOOK" | tee -a "$LOGFILE" || {
-        log "❌ Rollback playbook failed!"
+
+    # Run ansible-playbook and check for failures
+    if ! ansible-playbook "$ROLLBACK_PLAYBOOK" | tee -a "$LOGFILE"; then
+        log "❌ Rollback playbook failed or stopped unexpectedly!"
         exit 1
-    }
+    fi
     log "✅ Rollback playbook completed successfully."
 
 else
