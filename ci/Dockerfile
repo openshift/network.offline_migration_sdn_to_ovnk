@@ -1,8 +1,8 @@
 # Stage 1: Builder
-FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.23-openshift-4.19 AS builder
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.21-openshift-4.16 AS builder
 
 # Stage 2: Final Image
-FROM registry.ci.openshift.org/ocp/4.19:cli
+FROM registry.ci.openshift.org/ocp/4.16:cli
 
 # Set environment variables
 ENV OPERATOR=/usr/local/bin/ansible-operator \
