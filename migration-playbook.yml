@@ -35,4 +35,5 @@
         #mtu: 1400
         #geneve_port: 6081
         #ipv4_subnet: "100.64.0.0/16"
+        #interface_name: eth0
 
