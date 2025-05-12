@@ -1,0 +1,90 @@
+---
+- name: End-to-End Test for delete_primary_nncp module
+  hosts: localhost
+  gather_facts: false
+  vars:
+    test_interface_name: "ens5"  # Replace with the actual primary interface name used in your test env
+    test_nncp_name: "test-primary-nncp"
+
+  tasks:
+
+    - name: Check if NNCP CRD exists
+      command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
+      register: crd_check
+      retries: 5
+      delay: 5
+      until: crd_check.rc == 0 and 'nodenetworkconfigurationpolicies.nmstate.io' in crd_check.stdout
+      changed_when: false
+      failed_when: crd_check.rc != 0
+
+    - name: Debug - Confirm CRD exists
+      debug:
+        msg: "CRD found: {{ crd_check.stdout }}"
+
+    - name: Create dummy NNCP for test
+      copy:
+        dest: "/tmp/{{ test_nncp_name }}.yaml"
+        content: |
+          apiVersion: nmstate.io/v1
+          kind: NodeNetworkConfigurationPolicy
+          metadata:
+            name: {{ test_nncp_name }}
+          spec:
+            desiredState:
+              interfaces:
+              - name: {{ test_interface_name }}
+                type: ethernet
+                state: up
+    - name: Apply dummy NNCP
+      command: oc apply -f /tmp/{{ test_nncp_name }}.yaml
+      register: apply_output
+      changed_when: "'created' in apply_output.stdout or 'configured' in apply_output.stdout"
+      failed_when: apply_output.rc != 0
+
+    - name: Ensure the dummy NNCP was created
+      command: oc get nncp {{ test_nncp_name }}
+      register: nncp_get
+      retries: 5
+      delay: 5
+      until: nncp_get.rc == 0
+      changed_when: false
+      failed_when: nncp_get.rc != 0
+
+    - name: Wait for NNCP to be applied successfully
+      command: >
+        oc wait nncp {{ test_nncp_name }} --for=condition=Available --timeout=60s
+      register: wait_result
+      changed_when: false
+      failed_when: wait_result.rc != 0
+
+    - name: Run delete_primary_nncp module
+      delete_primary_nncp:
+        interface_name: "{{ test_interface_name }}"
+      register: delete_result
+
+    - name: Verify deletion module output
+      debug:
+        var: delete_result
+
+    - name: Confirm NNCP is deleted
+      command: oc get nncp {{ test_nncp_name }}
+      register: nncp_deleted
+      retries: 5
+      delay: 5
+      until: nncp_deleted.rc != 0
+      ignore_errors: true
+      failed_when: nncp_deleted.rc == 0
+      changed_when: false
+
+    - name: Assert NNCP was removed
+      assert:
+        that:
+          - delete_result.changed
+          - "'deleted successfully' in delete_result.msg"
+          - nncp_deleted.rc != 0
+        fail_msg: "NNCP deletion did not occur as expected"
+
+    - name: Cleanup temp NNCP file
+      file:
+        path: "/tmp/{{ test_nncp_name }}.yaml"
+        state: absent

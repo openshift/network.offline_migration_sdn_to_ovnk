@@ -43,6 +43,23 @@
   clean_migration_field:
     timeout: "{{ clean_migration_timeout }}"
 
+- name: Check if NNCP CRD exists with retries
+  command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
+  register: crd_check
+  retries: 5
+  delay: 5
+  until: crd_check.rc == 0 and 'nodenetworkconfigurationpolicies.nmstate.io' in crd_check.stdout
+  changed_when: false
+  ignore_errors: true
+
+- name: Delete NNCP for primary interface if exists
+  delete_primary_nncp:
+    interface_name: "{{ interface_name }}"
+  when:
+    - interface_name is defined
+    - interface_name | length > 0
+    - crd_check
+
 - name: Check if disable auto migration is set
   set_fact:
     disable_auto_migration: "{{ disable_auto_migration }}"
