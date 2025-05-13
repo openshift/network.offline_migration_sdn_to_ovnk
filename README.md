@@ -20,7 +20,7 @@
 
 - Clone the repository as follows:
 ```shell
-git clone git@github.com:miheer/ansible-sdn-to-ovn-migration.git
+git clone https://github.com/openshift/network.offline_migration_sdn_to_ovnk.git
 ```
 
 - Change to that directory:
