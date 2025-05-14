@@ -1,6 +1,8 @@
 - name: End-to-End Test for wait_for_mco Module
   hosts: localhost
   gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   tasks:
 
     - name: Start a dummy MachineConfig update (simulating an update)

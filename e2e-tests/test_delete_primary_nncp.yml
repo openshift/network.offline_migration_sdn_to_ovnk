@@ -2,6 +2,8 @@
 - name: End-to-End Test for delete_primary_nncp module
   hosts: localhost
   gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     test_interface_name: "ens5"  # Replace with the actual primary interface name used in your test env
     test_nncp_name: "test-primary-nncp"

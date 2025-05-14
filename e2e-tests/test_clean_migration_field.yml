@@ -1,6 +1,8 @@
 - name: End-to-End Tests for `clean_migration_field` module
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     clean_migration_timeout: 60  # Lower timeout for testing
 

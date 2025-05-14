@@ -2,6 +2,8 @@
 - name: End-to-End Test for trigger_network_type Module (Real OpenShift. Dont execute as it will trigger migration.)
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     network_type: "OVNKubernetes"
     ovn_co_timeout: 60

@@ -1,6 +1,8 @@
 - name: End-to-End Tests for `check_network_policy_mode` module
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     network_policy_mode: "NetworkPolicy"  # Expected mode
     timeout_value: 60  # Lower timeout for testing

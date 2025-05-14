@@ -2,6 +2,8 @@
 - name: End-to-End Test for verify_machine_config Module (Real OpenShift)
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     verify_machine_config_timeout: 15
   tasks:

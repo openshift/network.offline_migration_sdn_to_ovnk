@@ -2,6 +2,8 @@
 - name: End-to-End Test for wait_for_network_co Module (Real OpenShift)
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     ovn_co_timeout: 120  # Set a reasonable timeout for the test
   tasks:

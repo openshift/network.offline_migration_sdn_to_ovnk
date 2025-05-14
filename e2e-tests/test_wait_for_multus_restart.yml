@@ -2,6 +2,8 @@
 - name: End-to-End Test for wait_multus_restart Module (Real OpenShift)
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     ovn_multus_timeout: 300  # Set timeout for successful restart
   tasks:

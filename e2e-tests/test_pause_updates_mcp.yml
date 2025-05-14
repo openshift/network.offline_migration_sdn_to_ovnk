@@ -1,6 +1,8 @@
 - name: End-to-End Test for patch_mcp_paused module
   hosts: localhost
   gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   tasks:
 
     - name: Pause updates for master MachineConfigPool

@@ -2,6 +2,8 @@
 - name: End-to-End Test for check_cluster_operators Module
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     max_timeout: 90  # ⏳ Short timeout for quick testing
     pause_between_checks: 5  # ⏸️ Reduce wait time between checks

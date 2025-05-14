@@ -1,6 +1,8 @@
 - name: End-to-End Tests for `check_cidr_ranges` module
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     conflicting_cidr_ranges:
       - "100.64.0.0/16"

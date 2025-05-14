@@ -1,6 +1,8 @@
 - name: End-to-End Tests for `get_ocp_version` module
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     test_retries: 3
     test_delay: 5
