@@ -2,10 +2,12 @@
 - name: E2E Test - Verify oc client installation
   hosts: localhost
   gather_facts: no
-
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   tasks:
     - name: Execute custom Ansible module to check oc client
-      check_oc_client:  # This should match the module name
+      #network.offline_migration_sdn_to_ovnk.check_oc_client:  # This should match the module name
+      check_oc_client:
       register: oc_result
 
     - name: Debug output

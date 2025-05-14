@@ -1,5 +1,7 @@
 - name: Reboot nodes
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   roles:
     - role: reboot_nodes

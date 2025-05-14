@@ -2,6 +2,8 @@
 - name: Migrate from OpenShift SDN to OVN-Kubernetes
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   roles:
     - role: migration
       vars:

@@ -2,6 +2,8 @@
 - name: End-to-End Test for wait_for_mco_completion Module (Real OpenShift)
   hosts: localhost
   gather_facts: no
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     mcp_completion_timeout: 2700
   tasks:
