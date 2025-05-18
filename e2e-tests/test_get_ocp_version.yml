@@ -1,6 +1,7 @@
+---
 - name: End-to-End Tests for `get_ocp_version` module
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   vars:
@@ -15,60 +16,58 @@
       register: ocp_version_result
 
     - name: Debug module output
-      debug:
+      ansible.builtin.debug:
         var: ocp_version_result
 
     - name: Print OpenShift version
-      debug:
+      ansible.builtin.debug:
         msg: "Detected OpenShift version: {{ ocp_version_result.version }}"
       when: not ocp_version_result.failed and ocp_version_result.version is defined
 
     - name: Assert success when OpenShift version is retrieved
-      assert:
+      ansible.builtin.assert:
         that:
           - "ocp_version_result.version is defined"
         fail_msg: "Module should have successfully retrieved the OpenShift version!"
       when: not ocp_version_result.failed
 
     - name: Assert failure when command execution fails
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Command failed after' in ocp_version_result.msg"
         fail_msg: "Module should fail when `oc` command is unavailable!"
       when: ocp_version_result.failed
 
     - name: Extract OpenShift major and minor version
-      set_fact:
+      ansible.builtin.set_fact:
         version_major: "{{ ocp_version_result.version.split('.')[0] | int }}"
         version_minor: "{{ ocp_version_result.version.split('.')[1] | int }}"
 
     - name: Convert extracted versions to integers explicitly
-      set_fact:
+      ansible.builtin.set_fact:
         version_major: "{{ version_major | int }}"
         version_minor: "{{ version_minor | int }}"
 
-
     - name: Print OpenShift major version
-      debug:
+      ansible.builtin.debug:
         msg: "OpenShift Major Version: {{ version_major }}"
 
     - name: Print OpenShift minor version
-      debug:
+      ansible.builtin.debug:
         msg: "OpenShift Minor Version: {{ version_minor }}"
 
     - name: Print OpenShift full version
-      debug:
+      ansible.builtin.debug:
         msg: "OpenShift Full Version: {{ version_major }}.{{ version_minor }}"
 
     - name: Warn if OpenShift version is < 4.12
-      debug:
+      ansible.builtin.debug:
         msg: "Warning: OpenShift version {{ ocp_version_result.version }} is < 4.12. Manual migration required!"
       when: version_major | int == 4 and version_minor | int <= 11
 
     - name: Confirm OpenShift version is >= 4.12
-      assert:
+      ansible.builtin.assert:
         that:
           - version_major | int >= 4
           - (version_major | int == 4 and version_minor | int >= 12) or version_major | int > 4
         fail_msg: "OpenShift version must be 4.12 or higher!"
-

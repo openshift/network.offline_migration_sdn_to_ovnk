@@ -1,7 +1,7 @@
 ---
 - name: E2E Test - Verify oc client installation
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   tasks:
@@ -11,11 +11,11 @@
       register: oc_result
 
     - name: Debug output
-      debug:
+      ansible.builtin.debug:
         msg: "{{ oc_result }}"
 
     - name: Assert oc binary is present
-      assert:
+      ansible.builtin.assert:
         that:
           - oc_result.version is defined
           - oc_result.version | length > 0
@@ -23,5 +23,5 @@
         success_msg: "✅ OpenShift oc client is installed!"
 
     - name: Print OpenShift client version
-      debug:
+      ansible.builtin.debug:
         msg: "OpenShift Client Version: {{ oc_result.version }}"

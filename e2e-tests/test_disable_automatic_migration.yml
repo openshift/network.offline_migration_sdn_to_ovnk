@@ -1,7 +1,7 @@
 ---
 - name: End-to-End Test for `patch_network` Module
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   vars:
@@ -9,24 +9,23 @@
       - OpenShiftSDN
       - OVNKubernetes
   tasks:
-
     - name: Get OpenShift version (for validation)
-      command: oc get clusterversion version -o jsonpath='{.status.desired.version}'
+      ansible.builtin.command: oc get clusterversion version -o jsonpath='{.status.desired.version}'
       register: openshift_version_result
       changed_when: false
       failed_when: openshift_version_result.rc != 0 or openshift_version_result.stdout | length == 0
 
     - name: Parse OpenShift version
-      set_fact:
+      ansible.builtin.set_fact:
         version_major: "{{ openshift_version_result.stdout.split('.')[0] | int }}"
         version_minor: "{{ openshift_version_result.stdout.split('.')[1] | int }}"
 
     - name: Set disable_auto_migration
-      set_fact:
+      ansible.builtin.set_fact:
         disable_auto_migration: true
 
     - name: Ensure OpenShift version is valid for migration
-      fail:
+      ansible.builtin.fail:
         msg: "OpenShift version is below 4.12. Migration settings will not be applied."
       when: version_major | int <= 4 and version_minor | int < 12
 
@@ -38,15 +37,15 @@
         egress_firewall: false
         multicast: false
       register: test_result_valid_ovn
-      ignore_errors: yes
+      ignore_errors: true
       when: disable_auto_migration == true
 
     - name: Debug module output (Valid OVNKubernetes)
-      debug:
+      ansible.builtin.debug:
         var: test_result_valid_ovn
 
     - name: Assert success for valid OVNKubernetes input
-      assert:
+      ansible.builtin.assert:
         that:
           - test_result_valid_ovn is success
           - "'Network operator migration settings updated' in test_result_valid_ovn.msg"
@@ -58,15 +57,15 @@
         network_type: "OpenShiftSDN"
         multicast: false
       register: test_result_valid_sdn
-      ignore_errors: yes
+      ignore_errors: true
       when: disable_auto_migration == true
 
     - name: Debug module output (Valid OpenShiftSDN)
-      debug:
+      ansible.builtin.debug:
         var: test_result_valid_sdn
 
     - name: Assert success for valid OpenShiftSDN input
-      assert:
+      ansible.builtin.assert:
         that:
           - test_result_valid_sdn is success
           - "'Network operator migration settings updated' in test_result_valid_sdn.msg"
@@ -78,18 +77,18 @@
         network_type: "InvalidNetwork"
         egress_ip: false
       register: test_result_invalid_network
-      ignore_errors: yes
+      ignore_errors: true
       when: disable_auto_migration == true
 
     - name: Debug module output (Invalid Network Type)
-      debug:
+      ansible.builtin.debug:
         var: test_result_invalid_network
 
     - name: Assert failure for invalid network type
-      assert:
+      ansible.builtin.assert:
         that:
-            - test_result_invalid_network is failed
-            - "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
+          - test_result_invalid_network is failed
+          - "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
       when: test_result_invalid_network is failed
       #when: "'value of network_type must be one of: OVNKubernetes, OpenShiftSDN, got: InvalidNetwork' in test_result_invalid_network.msg"
 
@@ -98,35 +97,34 @@
       disable_automatic_migration:
         network_type: "OVNKubernetes"
       register: test_result_no_params
-      ignore_errors: yes
+      ignore_errors: true
       when: disable_auto_migration == true
 
     - name: Debug module output (No Parameters Provided)
-      debug:
+      ansible.builtin.debug:
         var: test_result_no_params
 
     - name: Assert failure for no parameters
-      assert:
+      ansible.builtin.assert:
         that:
           - test_result_no_params is failed
           - "'No values provided. Automatic migration will be applied.' in test_result_no_params.msg"
       when: test_result_no_params is failed
 
-
     # ✅ Rollback: Revert `spec.migration` to null after test completion
     - name: Revert Migration Field to Null
-      command: >
+      ansible.builtin.command: >
         oc patch Network.operator.openshift.io cluster --type=merge --patch '{"spec": {"migration": null}}'
       register: revert_result
       changed_when: "'patched' in revert_result.stdout or 'unchanged' in revert_result.stdout"
       failed_when: revert_result.rc != 0
 
     - name: Debug Migration Reset Result
-      debug:
+      ansible.builtin.debug:
         var: revert_result
 
     - name: Assert Migration Field is Reverted
-      assert:
+      ansible.builtin.assert:
         that:
           - "'patched' in revert_result.stdout or 'unchanged' in revert_result.stdout"
       when: revert_result is succeeded

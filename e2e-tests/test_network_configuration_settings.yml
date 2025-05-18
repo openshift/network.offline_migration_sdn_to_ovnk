@@ -1,3 +1,4 @@
+---
 - name: End-to-End Test for configure_network_settings module
   hosts: localhost
   gather_facts: false
@@ -10,7 +11,7 @@
       register: patch_result
 
     - name: Debug applied patch result
-      debug:
+      ansible.builtin.debug:
         msg: "{{ patch_result.msg }}"
 
     - name: Apply network configuration changes
@@ -22,23 +23,23 @@
         retries: 3
         delay: 5
       register: test_result_valid_ovn
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Valid ovnKubernetes)
-      debug:
+      ansible.builtin.debug:
         var: test_result_valid_ovn
 
     - name: Fetch updated network configuration
-      command: oc get Network.operator.openshift.io cluster -o json
+      ansible.builtin.command: oc get Network.operator.openshift.io cluster -o json
       register: network_status
       changed_when: false
 
     - name: Parse network configuration
-      set_fact:
+      ansible.builtin.set_fact:
         network_data: "{{ network_status.stdout | from_json }}"
 
     - name: Verify OVNKubernetes settings
-      assert:
+      ansible.builtin.assert:
         that:
           - network_data.spec.defaultNetwork.ovnKubernetesConfig.mtu == 1400
           - network_data.spec.defaultNetwork.ovnKubernetesConfig.genevePort == 6081
@@ -56,20 +57,20 @@
       register: revert_result
 
     - name: Debug revert result
-      debug:
+      ansible.builtin.debug:
         msg: "{{ revert_result.msg }}"
 
     - name: Validate network settings reverted
-      command: oc get Network.operator.openshift.io cluster -o json
+      ansible.builtin.command: oc get Network.operator.openshift.io cluster -o json
       register: reverted_network_status
       changed_when: false
 
     - name: Parse reverted network configuration
-      set_fact:
+      ansible.builtin.set_fact:
         reverted_network_data: "{{ reverted_network_status.stdout | from_json }}"
 
     - name: Verify reverted settings
-      assert:
+      ansible.builtin.assert:
         that:
           - reverted_network_data.spec.defaultNetwork.ovnKubernetesConfig.mtu == 1500
           - reverted_network_data.spec.defaultNetwork.ovnKubernetesConfig.genevePort == 6081
@@ -84,9 +85,8 @@
       register: patch_result
 
     - name: Debug applied patch result
-      debug:
+      ansible.builtin.debug:
         msg: "{{ patch_result.msg }}"
-
 
     # ✅ Test Case 1: Valid Input (ovnKubernetes, MTU and Geneve Port)
     - name: Run patch_network module with ovnKubernetes
@@ -95,51 +95,48 @@
         mtu: 1400
         geneve_port: 6081
       register: test_result_valid_ovn
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Valid ovnKubernetes)
-      debug:
+      ansible.builtin.debug:
         var: test_result_valid_ovn
 
     - name: Verify ovnKubernetesConfig was applied
-      command: oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig}'
+      ansible.builtin.command: oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig}'
       register: check_ovn_config
       changed_when: false
 
     - name: Assert ovnKubernetesConfig was correctly set
-      assert:
+      ansible.builtin.assert:
         that:
           - '"1400" in check_ovn_config.stdout'
           - '"6081" in check_ovn_config.stdout'
       when: test_result_valid_ovn is success
 
-
-# ✅ Test Case 2: Valid Input (openshiftSDN, MTU and VXLAN Port)
+    # ✅ Test Case 2: Valid Input (openshiftSDN, MTU and VXLAN Port)
     - name: Run patch_network module with openshiftSDN
       configure_network_settings:
         configure_network_type: "openshiftSDN"
         mtu: 1450
         vxlanPort: 4789
       register: test_result_valid_sdn
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Valid openshiftSDN)
-      debug:
+      ansible.builtin.debug:
         var: test_result_valid_sdn
 
     - name: Verify openshiftSDNConfig was applied
-      command: oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.openshiftSDNConfig}'
+      ansible.builtin.command: oc get Network.operator.openshift.io cluster -o jsonpath='{.spec.defaultNetwork.openshiftSDNConfig}'
       register: check_sdn_config
       changed_when: false
 
     - name: Assert openshiftSDNConfig was correctly set
-      assert:
+      ansible.builtin.assert:
         that:
           - '"1450" in check_sdn_config.stdout'
           - '"4789" in check_sdn_config.stdout'
       when: test_result_valid_sdn is success
-
-
 
     # ❌ Test Case 3: Invalid Network Type
     - name: Run patch_network module with invalid network type
@@ -147,14 +144,14 @@
         configure_network_type: "invalidNetwork"
         mtu: 1400
       register: test_result_invalid_network
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Invalid Network Type)
-      debug:
+      ansible.builtin.debug:
         var: test_result_invalid_network
 
     - name: Assert failure for invalid network type
-      assert:
+      ansible.builtin.assert:
         that:
           - test_result_invalid_network is failed
           - "'value of configure_network_type must be one of: ovnKubernetes, openshiftSDN, got: invalidNetwork' in test_result_invalid_network.msg"
@@ -165,14 +162,14 @@
       configure_network_settings:
         configure_network_type: "ovnKubernetes"
       register: test_result_no_params
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (No Parameters Provided)
-      debug:
+      ansible.builtin.debug:
         var: test_result_no_params
 
     - name: Assert failure for no parameters
-      assert:
+      ansible.builtin.assert:
         that:
           - test_result_no_params is failed
           - "'No changes required. No valid parameters provided.' in test_result_no_params.msg"
@@ -184,14 +181,14 @@
         configure_network_type: "ovnKubernetes"
         vxlanPort: 4789
       register: test_result_invalid_param
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Invalid Parameter for ovnKubernetes)
-      debug:
+      ansible.builtin.debug:
         var: test_result_invalid_param
 
     - name: Assert warning for invalid parameter
-      assert:
+      ansible.builtin.assert:
         that:
           - "'vxlanPort' in test_result_invalid_param.warnings[0]"
       when: test_result_invalid_param is success
@@ -202,21 +199,21 @@
         configure_network_type: "ovnKubernetes"
         mtu: 1400
       register: test_result_check_mode
-      check_mode: yes
+      check_mode: true
 
     - name: Debug module output (Check Mode)
-      debug:
+      ansible.builtin.debug:
         var: test_result_check_mode
 
     - name: Assert check mode does not apply changes
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Check mode: Patch command prepared' in test_result_check_mode.msg"
       when: test_result_check_mode is success
 
     # ✅ Rollback: Remove Config Fields Only (Retain Network Type)
     - name: Revert ovnKubernetesConfig if it was set
-      command: >
+      ansible.builtin.command: >
         oc patch Network.operator.openshift.io cluster --type=merge --patch
         '{"spec": {"defaultNetwork": {"ovnKubernetesConfig": null}}}'
       register: revert_result_ovn
@@ -225,7 +222,7 @@
       when: "'Network configuration patched successfully' in test_result_valid_ovn.msg"
 
     - name: Revert openshiftSDNConfig if it was set
-      command: >
+      ansible.builtin.command: >
         oc patch Network.operator.openshift.io cluster --type=merge --patch
         '{"spec": {"defaultNetwork": {"openshiftSDNConfig": null}}}'
       register: revert_result_sdn
@@ -234,23 +231,23 @@
       when: "'Network configuration patched successfully' in test_result_valid_sdn.msg"
 
     - name: Debug Network Configuration Reset Result
-      debug:
+      ansible.builtin.debug:
         var: revert_result_ovn
       when: "'Network configuration patched successfully' in test_result_valid_ovn.msg"
 
     - name: Debug Network Configuration Reset Result
-      debug:
+      ansible.builtin.debug:
         var: revert_result_sdn
       when: "'Network configuration patched successfully' in test_result_valid_sdn.msg"
 
     - name: Assert Network Configuration is Reverted for ovnKubernetes
-      assert:
+      ansible.builtin.assert:
         that:
           - "'patched' in revert_result_ovn.stdout or 'unchanged' in revert_result_ovn.stdout"
       when: "'Network configuration patched successfully' in test_result_valid_ovn.msg"
 
     - name: Assert Network Configuration is Reverted for openshiftSDN
-      assert:
+      ansible.builtin.assert:
         that:
           - "'patched' in revert_result_sdn.stdout or 'unchanged' in revert_result_sdn.stdout"
       when: "'Network configuration patched successfully' in test_result_valid_sdn.msg"

@@ -5,13 +5,12 @@
   collections:
     - network.offline_migration_sdn_to_ovnk
   vars:
-    test_interface_name: "ens5"  # Replace with the actual primary interface name used in your test env
+    test_interface_name: "ens5" # Replace with the actual primary interface name used in your test env
     test_nncp_name: "test-primary-nncp"
 
   tasks:
-
     - name: Check if NNCP CRD exists
-      command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
+      ansible.builtin.command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
       register: crd_check
       retries: 5
       delay: 5
@@ -20,11 +19,11 @@
       failed_when: crd_check.rc != 0
 
     - name: Debug - Confirm CRD exists
-      debug:
+      ansible.builtin.debug:
         msg: "CRD found: {{ crd_check.stdout }}"
 
     - name: Create dummy NNCP for test
-      copy:
+      ansible.builtin.copy:
         dest: "/tmp/{{ test_nncp_name }}.yaml"
         content: |
           apiVersion: nmstate.io/v1
@@ -38,13 +37,13 @@
                 type: ethernet
                 state: up
     - name: Apply dummy NNCP
-      command: oc apply -f /tmp/{{ test_nncp_name }}.yaml
+      ansible.builtin.command: oc apply -f /tmp/{{ test_nncp_name }}.yaml
       register: apply_output
       changed_when: "'created' in apply_output.stdout or 'configured' in apply_output.stdout"
       failed_when: apply_output.rc != 0
 
     - name: Ensure the dummy NNCP was created
-      command: oc get nncp {{ test_nncp_name }}
+      ansible.builtin.command: oc get nncp {{ test_nncp_name }}
       register: nncp_get
       retries: 5
       delay: 5
@@ -53,7 +52,7 @@
       failed_when: nncp_get.rc != 0
 
     - name: Wait for NNCP to be applied successfully
-      command: >
+      ansible.builtin.command: >
         oc wait nncp {{ test_nncp_name }} --for=condition=Available --timeout=60s
       register: wait_result
       changed_when: false
@@ -65,11 +64,11 @@
       register: delete_result
 
     - name: Verify deletion module output
-      debug:
+      ansible.builtin.debug:
         var: delete_result
 
     - name: Confirm NNCP is deleted
-      command: oc get nncp {{ test_nncp_name }}
+      ansible.builtin.command: oc get nncp {{ test_nncp_name }}
       register: nncp_deleted
       retries: 5
       delay: 5
@@ -79,7 +78,7 @@
       changed_when: false
 
     - name: Assert NNCP was removed
-      assert:
+      ansible.builtin.assert:
         that:
           - delete_result.changed
           - "'deleted successfully' in delete_result.msg"
@@ -87,6 +86,6 @@
         fail_msg: "NNCP deletion did not occur as expected"
 
     - name: Cleanup temp NNCP file
-      file:
+      ansible.builtin.file:
         path: "/tmp/{{ test_nncp_name }}.yaml"
         state: absent

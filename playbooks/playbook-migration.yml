@@ -3,4 +3,3 @@
 - import_playbook: migration-playbook.yml
 - import_playbook: reboot-playbook.yml
 - import_playbook: post_migration-playbook.yml
-

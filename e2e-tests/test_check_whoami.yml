@@ -1,6 +1,7 @@
+---
 - name: Test `check_whoami` custom module
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   tasks:
@@ -9,18 +10,18 @@
       register: oc_whoami_result
 
     - name: Debug output of check_whoami
-      debug:
+      ansible.builtin.debug:
         msg: "Output: {{ oc_whoami_result.message }}"
       when: oc_whoami_result.message is defined
 
     - name: Assert success when logged in as `system:admin`
-      assert:
+      ansible.builtin.assert:
         that:
           - "'system:admin' in oc_whoami_result.message"
         fail_msg: "User is not `system:admin`, test failed!"
       when: not oc_whoami_result.failed
 
     - name: Fail if the module fails incorrectly
-      fail:
+      ansible.builtin.fail:
         msg: "Module execution failed: {{ oc_whoami_result.msg }}"
       when: oc_whoami_result.failed

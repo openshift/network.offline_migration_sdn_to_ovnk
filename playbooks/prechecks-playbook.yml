@@ -1,6 +1,7 @@
+---
 - name: Prechecks
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   roles:

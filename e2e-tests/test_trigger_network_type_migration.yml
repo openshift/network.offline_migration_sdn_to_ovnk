@@ -1,27 +1,26 @@
 ---
 - name: End-to-End Test for trigger_network_type Module (Real OpenShift. Dont execute as it will trigger migration.)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   collections:
     - network.offline_migration_sdn_to_ovnk
   vars:
     network_type: "OVNKubernetes"
     ovn_co_timeout: 60
   tasks:
-
     - name: Run trigger_network_type module (Failure due to invalid network type)
       trigger_network_type:
         network_type: "InvalidNetwork"
         timeout: "{{ ovn_co_timeout }}"
       register: result_invalid_network
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Invalid Network Type)
-      debug:
+      ansible.builtin.debug:
         var: result_invalid_network
 
     - name: Assert failure due to invalid network type
-      assert:
+      ansible.builtin.assert:
         that:
           - result_invalid_network is failed
           - "'Command failed' in result_invalid_network.msg"
@@ -30,16 +29,16 @@
     - name: Run trigger_network_type module (Failure due to API timeout)
       trigger_network_type:
         network_type: "{{ network_type }}"
-        timeout: 1  # Force timeout
+        timeout: 1 # Force timeout
       register: result_timeout
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (API Timeout)
-      debug:
+      ansible.builtin.debug:
         var: result_timeout
 
     - name: Assert failure due to API timeout
-      assert:
+      ansible.builtin.assert:
         that:
           - result_timeout is failed
           - "'timeout' in result_timeout.msg"
@@ -52,11 +51,11 @@
       register: result_success
 
     - name: Debug module output (Success)
-      debug:
+      ansible.builtin.debug:
         var: result_success
 
     - name: Assert success scenario
-      assert:
+      ansible.builtin.assert:
         that:
           - result_success is success
           - '"Successfully triggered OVNKubernetes deployment." in result_success.msg'
