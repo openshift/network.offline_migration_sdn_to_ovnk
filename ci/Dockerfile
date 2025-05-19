@@ -40,6 +40,8 @@ RUN echo "${USER_NAME}:x:${USER_UID}:0:${USER_NAME} user:${HOME}:/sbin/nologin" 
  && chown -R "${USER_UID}:0" /go \
  && chmod -R ug+rwX /go
 
+RUN git config --system --add safe.directory /opt/ansible
+
 # Copy application files (must be separate from RUN)
 COPY . /opt/ansible
 
