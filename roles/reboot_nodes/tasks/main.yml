@@ -18,5 +18,3 @@
     retries: 5
     retry_delay: 3
     timeout: 1800
-
-

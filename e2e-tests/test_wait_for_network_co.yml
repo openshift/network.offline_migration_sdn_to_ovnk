@@ -1,22 +1,23 @@
 ---
 - name: End-to-End Test for wait_for_network_co Module (Real OpenShift)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
-    ovn_co_timeout: 120  # Set a reasonable timeout for the test
+    ovn_co_timeout: 120 # Set a reasonable timeout for the test
   tasks:
-
     - name: Run wait_for_network_co module (Success scenario)
       wait_for_network_co:
         timeout: "{{ ovn_co_timeout }}"
       register: result_success
 
     - name: Debug module output (Success)
-      debug:
+      ansible.builtin.debug:
         var: result_success
 
     - name: Assert success scenario
-      assert:
+      ansible.builtin.assert:
         that:
           - result_success is success
           - '"Network Cluster Operator is in PROGRESSING=True state." in result_success.msg'
@@ -24,16 +25,16 @@
 
     - name: Run wait_for_network_co module (Failure due to timeout)
       wait_for_network_co:
-        timeout: 1  # Force an immediate timeout
+        timeout: 1 # Force an immediate timeout
       register: result_timeout
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Timeout Failure)
-      debug:
+      ansible.builtin.debug:
         var: result_timeout
 
     - name: Assert failure due to timeout
-      assert:
+      ansible.builtin.assert:
         that:
           - result_timeout is failed
           - '"Timeout waiting for Network Cluster Operator to reach PROGRESSING=True." in result_timeout.msg'

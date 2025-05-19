@@ -1,7 +1,9 @@
 ---
 - name: End-to-End Test for wait_for_mco_completion Module (Real OpenShift)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     mcp_completion_timeout: 2700
   tasks:
@@ -12,48 +14,48 @@
       #ignore_errors: yes
 
     - name: Debug module output (Success)
-      debug:
+      ansible.builtin.debug:
         var: result_success
 
     - name: Verify success case - UPDATED=True, UPDATING=False, DEGRADED=False
-      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updated")].status}'
+      ansible.builtin.command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updated")].status}'
       register: mcp_updated
       changed_when: false
       retries: 5
       delay: 10
 
-    - name: debug mcp
-      debug:
+    - name: Debug mcp
+      ansible.builtin.debug:
         msg: "DEBUG {{ mcp_updated }}"
 
     - name: Assert that MCP is UPDATED=True
-      assert:
+      ansible.builtin.assert:
         that:
           - '"True" in mcp_updated.stdout'
       when: result_success is success
 
     - name: Verify that MCP is not UPDATING
-      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updating")].status}'
+      ansible.builtin.command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Updating")].status}'
       register: mcp_updating
       changed_when: false
       retries: 5
       delay: 10
 
     - name: Assert that MCP is UPDATING=False
-      assert:
+      ansible.builtin.assert:
         that:
           - '"False" in mcp_updating.stdout'
       when: result_success is success
 
     - name: Verify that MCP is not DEGRADED
-      command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Degraded")].status}'
+      ansible.builtin.command: oc get mcp -o jsonpath='{.items[*].status.conditions[?(@.type=="Degraded")].status}'
       register: mcp_degraded
       changed_when: false
       retries: 5
       delay: 10
 
     - name: Assert that MCP is DEGRADED=False
-      assert:
+      ansible.builtin.assert:
         that:
           - '"False" in mcp_degraded.stdout'
       when: result_success is success

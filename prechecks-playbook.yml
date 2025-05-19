@@ -1,7 +1,0 @@
-- name: Prechecks
-  hosts: localhost
-  gather_facts: no
-  roles:
-    - role: prechecks
-      vars:
-        ovn_sdn_migration_timeout: 180

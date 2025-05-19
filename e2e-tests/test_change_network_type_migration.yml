@@ -1,9 +1,12 @@
+---
 - name: End-to-End Tests for `change_network_type` module
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     network_type: "OVNKubernetes"
-    change_migration_timeout: 60  # Lower timeout for testing
+    change_migration_timeout: 60 # Lower timeout for testing
 
   tasks:
     - name: Run `change_network_type` module
@@ -13,24 +16,24 @@
       register: change_network_result
 
     - name: Debug output of `change_network_type`
-      debug:
+      ansible.builtin.debug:
         var: change_network_result
 
     - name: Assert success when network type is changed
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Migration field set to networkType:{{ network_type }}' in change_network_result.msg"
         fail_msg: "Module should have successfully changed the network type!"
       when: not change_network_result.failed
 
     - name: Assert failure when timeout occurs
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Network type could not be changed to {{ network_type }}' in change_network_result.msg"
         fail_msg: "Timeout behavior is not working correctly!"
       when: change_network_result.failed and "Network type could not be changed" in change_network_result.msg
 
     - name: Fail if module fails unexpectedly
-      fail:
+      ansible.builtin.fail:
         msg: "Module failed unexpectedly: {{ change_network_result.msg }}"
       when: change_network_result.failed and "Network type could not be changed" not in change_network_result.msg

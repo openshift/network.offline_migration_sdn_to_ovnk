@@ -1,24 +1,25 @@
 ---
 - name: End-to-End Test for verify_machine_config Module (Real OpenShift)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     verify_machine_config_timeout: 15
   tasks:
-
     - name: Run verify_machine_config module (Failure due to config mismatch)
       verify_machine_config:
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_config_mismatch
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Config Mismatch)
-      debug:
+      ansible.builtin.debug:
         var: result_config_mismatch
 
     - name: Assert failure due to config mismatch
-      assert:
+      ansible.builtin.assert:
         that:
           - result_config_mismatch is failed
           - "'currentConfig' in result_config_mismatch.issues"
@@ -29,14 +30,14 @@
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_node_not_ready
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Node Not Ready)
-      debug:
+      ansible.builtin.debug:
         var: result_node_not_ready
 
     - name: Assert failure due to node not being ready
-      assert:
+      ansible.builtin.assert:
         that:
           - result_node_not_ready is failed
           - "'state' in result_node_not_ready.issues"
@@ -47,14 +48,14 @@
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_execstart_missing
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Missing ExecStart) #TODO Fix the returns from module to fetch execstart so that we can test
-      debug:
+      ansible.builtin.debug:
         var: result_execstart_missing
 
     - name: Assert failure due to missing ExecStart
-      assert:
+      ansible.builtin.assert:
         that:
           - result_execstart_missing is failed
           - "'ExecStart' in result_execstart_missing.issues"
@@ -67,13 +68,12 @@
       register: result_success
 
     - name: Debug module output (Success)
-      debug:
+      ansible.builtin.debug:
         var: result_success
 
     - name: Assert success scenario
-      assert:
+      ansible.builtin.assert:
         that:
           - result_success is success
           - result_success.msg == "All machine configurations are correct."
       when: result_success is success
-

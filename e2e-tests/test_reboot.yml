@@ -1,11 +1,12 @@
 ---
 - name: End-to-End Test for reboot_nodes Module (Real OpenShift)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     ovn_reboot_timeout: 1800
   tasks:
-
     - name: Run reboot_nodes module for master nodes (Success Scenario)
       reboot_nodes:
         role: "master"
@@ -18,11 +19,11 @@
       register: result_master_success
 
     - name: Debug module output (Master Nodes)
-      debug:
+      ansible.builtin.debug:
         var: result_master_success
 
     - name: Assert success for master nodes reboot
-      assert:
+      ansible.builtin.assert:
         that:
           - result_master_success is success
           - '"All nodes rebooted and ready." in result_master_success.msg'
@@ -38,14 +39,14 @@
         retry_delay: 3
         timeout: "{{ ovn_reboot_timeout }}"
       register: result_worker_success
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Worker Nodes)
-      debug:
+      ansible.builtin.debug:
         var: result_worker_success
 
     - name: Assert success for worker nodes reboot
-      assert:
+      ansible.builtin.assert:
         that:
           - result_worker_success is success
           - '"All nodes rebooted and ready." in result_worker_success.msg'

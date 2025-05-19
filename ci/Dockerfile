@@ -11,23 +11,25 @@ ENV OPERATOR=/usr/local/bin/ansible-operator \
     HOME=/opt/ansible
 
 # Ensure system is updated before installation
-RUN yum clean all && yum update -y
+#RUN yum clean all && yum update -y
+
+RUN dnf -y upgrade --refresh && dnf clean all
 
 # Install necessary dependencies
-RUN yum install -y \
+RUN dnf install -y \
       glibc-langpack-en \
       git \
       make \
-      python3 \
-      python3-devel \
-      python3-pip \
-      python3-setuptools \
+      python3.12 \
+      python3.12-pip \
       gcc \
       jq  \
-  && python3 -m pip install --no-cache-dir --upgrade pip \
-  && python3 -m pip install --no-cache-dir ansible \
-  && yum clean all \
-  && rm -rf /var/cache/yum
+  && python3.12 -m pip install --no-cache-dir --upgrade pip \
+  && python3.12 -m pip install --no-cache-dir ansible-core==2.18.1 \
+  && python3.12 -m pip install --no-cache-dir ansible-lint==25.4.0 \
+  && python3.12 -m pip install --no-cache-dir  jmespath \
+  #&& dnf clean all \
+  && rm -rf /var/cache/dnf
 
 # Create user and directories
 RUN echo "${USER_NAME}:x:${USER_UID}:0:${USER_NAME} user:${HOME}:/sbin/nologin" >> /etc/passwd \
@@ -43,6 +45,8 @@ COPY . /opt/ansible
 
 # Set working directory
 WORKDIR /opt/ansible
+
+RUN chown -R ${USER_UID}:0 /opt/ansible
 
 # Switch to non-root user
 USER ${USER_UID}

@@ -1,0 +1,10 @@
+---
+- name: Prechecks
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
+  roles:
+    - role: prechecks
+      vars:
+        ovn_sdn_migration_timeout: 180

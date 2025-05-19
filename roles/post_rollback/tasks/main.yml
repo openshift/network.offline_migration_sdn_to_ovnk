@@ -10,7 +10,7 @@
   register: mco_status
 
 - name: Print MCO status message
-  debug:
+  ansible.builtin.debug:
     msg: "{{ mco_status.msg }}"
 
 - name: Check all cluster operators back to normal
@@ -22,7 +22,7 @@
   register: result
 
 - name: Display the cluster operators status
-  shell: oc get co
+  ansible.builtin.command: oc get co
   when: result.changed
 
 - name: Verify machine configuration status on nodes
@@ -36,7 +36,7 @@
   register: result
 
 - name: Display the result of the network provider check
-  debug:
+  ansible.builtin.debug:
     msg: "{{ result.msg }}"
 
 - name: Check if all cluster nodes are in Ready state
@@ -44,16 +44,15 @@
   register: node_status
 
 - name: Notify user about NotReady nodes
-  debug:
+  ansible.builtin.debug:
     msg: >
-      The following nodes are not in the Ready state: 
-      {{ node_status.not_ready_nodes | map(attribute='name') | join(', ') }}.
+      The following nodes are not in the Ready state:  {{ node_status.not_ready_nodes | map(attribute='name') | join(', ') }}.
       Please investigate machine config daemon pod logs.
 
   when: node_status.not_ready_nodes | length > 0
 
 - name: Display command to list machine config daemon pods
-  debug:
+  ansible.builtin.debug:
     msg: |
       Run the following command to list machine config daemon pods:
       oc get pod -n openshift-machine-config-operator
@@ -68,11 +67,11 @@
   when: node_status.not_ready_nodes | length > 0
 
 - name: Confirm that no pods are in an error state
-  command: oc get pods --all-namespaces -o wide
+  ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
 
 - name: Notify user if any pods are in an error state
-  debug:
+  ansible.builtin.debug:
     msg: |
       Investigate pods that are not in a Running state.
       If necessary, reboot the node where the affected pods are scheduled.
@@ -90,7 +89,7 @@
   register: result
 
 - name: Notify user about the result
-  debug:
+  ansible.builtin.debug:
     msg: "{{ result.msg }}"
 
 - name: Check all cluster operators back to normal

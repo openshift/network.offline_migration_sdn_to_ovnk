@@ -20,12 +20,27 @@
 
 - Clone the repository as follows:
 ```shell
-git clone git@github.com:miheer/ansible-sdn-to-ovn-migration.git
+git clone git@github.com:openshift/network.offline_migration_sdn_to_ovnk.git
 ```
 
 - Change to that directory:
+``` shell
+cd network.offline_migration_sdn_to_ovnk
 ```
-cd ansible-sdn-to-ovn-migration.git
+
+- Build the ansible collection:
+```shell
+ansible-galaxy collection build .
+```
+
+- Install the ansible collection:
+```shell
+ansible-galaxy collection install  network-offline_migration_sdn_to_ovnk-1.0.0.tar.gz
+```
+
+-  Check if the collection is installed:
+```shell
+ansible-galaxy collection list | grep network.offline_migration_sdn_to_ovnk 
 ```
 
 - To run the migration from OpenShiftSDN to OVNKubernetes

@@ -1,23 +1,24 @@
 ---
 - name: End-to-End Test for wait_multus_restart Module (Real OpenShift)
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
-    ovn_multus_timeout: 300  # Set timeout for successful restart
+    ovn_multus_timeout: 300 # Set timeout for successful restart
   tasks:
-
     - name: Run wait_multus_restart module (Failure due to timeout)
       wait_multus_restart:
-        timeout: 1  # Force an immediate timeout
+        timeout: 1 # Force an immediate timeout
       register: result_timeout
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Debug module output (Timeout Failure)
-      debug:
+      ansible.builtin.debug:
         var: result_timeout
 
     - name: Assert failure due to timeout
-      assert:
+      ansible.builtin.assert:
         that:
           - result_timeout is failed
           - '"Timeout reached while waiting for Multus pods to restart." in result_timeout.msg'
@@ -29,11 +30,11 @@
       register: result_success
 
     - name: Debug module output (Success)
-      debug:
+      ansible.builtin.debug:
         var: result_success
 
     - name: Assert success scenario
-      assert:
+      ansible.builtin.assert:
         that:
           - result_success is success
           - '"Multus pods restarted successfully." in result_success.msg'

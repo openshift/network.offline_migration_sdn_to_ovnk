@@ -1,6 +1,9 @@
+---
 - name: End-to-End Tests for `check_cidr_ranges` module
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
+  collections:
+    - network.offline_migration_sdn_to_ovnk
   vars:
     conflicting_cidr_ranges:
       - "100.64.0.0/16"
@@ -14,34 +17,34 @@
     - name: Run `check_cidr_ranges` module with test CIDRs
       check_cidr_ranges:
         conflicting_ranges: "{{ conflicting_cidr_ranges }}"
-        timeout: 60  # Lower timeout for testing
+        timeout: 60 # Lower timeout for testing
       register: cidr_check_result
 
     - name: Debug output of `check_cidr_ranges`
-      debug:
+      ansible.builtin.debug:
         var: cidr_check_result
 
     - name: Assert success when no conflicts are found
-      assert:
+      ansible.builtin.assert:
         that:
           - "'No conflicting CIDR ranges found.' in cidr_check_result.msg"
         fail_msg: "CIDR conflict detected when there should be none!"
       when: not cidr_check_result.failed
 
     - name: Assert failure when conflicts are detected
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Conflicting CIDR ranges found' in cidr_check_result.msg"
         fail_msg: "Module did not detect CIDR conflicts!"
       when: cidr_check_result.failed
 
     - name: Fail if the module fails unexpectedly
-      fail:
+      ansible.builtin.fail:
         msg: "Module failed unexpectedly: {{ cidr_check_result.msg }}"
       when: cidr_check_result.failed and "Conflicting CIDR ranges found" not in cidr_check_result.msg
 
     - name: Test timeout behavior (if applicable)
-      assert:
+      ansible.builtin.assert:
         that:
           - "'Timeout waiting for CIDR data' in cidr_check_result.msg"
         fail_msg: "Timeout handling did not work as expected!"
