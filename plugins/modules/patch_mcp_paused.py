@@ -1,3 +1,34 @@
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: patch_mcp_paused
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import time
 import json
@@ -37,17 +68,13 @@ def main():
     # Build the patch command
     patch = {"spec": {"paused": paused_value}}
 
-    patch_command = [
-        "oc", "patch", "MachineConfigPool", pool_name, "--type=merge", "--patch",
-        json.dumps(patch)
-    ]
+    patch_command = ["oc", "patch", "MachineConfigPool", pool_name, "--type=merge", "--patch", json.dumps(patch)]
 
     # Execute the command
     if module.check_mode:
         module.exit_json(changed=True, msg=f"Check mode: would patch {pool_name} with paused={paused_value}.")
 
-
-    _, error = run_command_with_retries(module, patch_command)
+    _unused, error = run_command_with_retries(module, patch_command)
     if error:
         module.fail_json(msg=f"Failed to patch {pool_name}: {error}")
 

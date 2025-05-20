@@ -12,13 +12,13 @@ clean:
 	rm -rf ansible_collections
 
 build: clean
-	ansible-galaxy collection build
+	ansible-galaxy collection build .
 
 install: build
-	ansible-galaxy collection install --force -p ansible_collections network-offline_migration_sdn_to_ovnk-$(VERSION).tar.gz
+	ansible-galaxy collection install --force ./network-offline_migration_sdn_to_ovnk-*.tar.gz
 
 sanity: install
-	cd ansible_collections/network/offline_migration_sdn_to_ovnk && ansible-test sanity -v --python $(PYTHON_VERSION) $(SANITY_TEST_ARGS)
+	cd $(HOME)/.ansible/collections/ansible_collections/network/offline_migration_sdn_to_ovnk && ansible-test sanity -v --python $(PYTHON_VERSION) $(SANITY_TEST_ARGS)
 
 test-integration-incluster:
 	./ci/incluster_integration.sh

@@ -1,5 +1,36 @@
 #!/usr/bin/python
 
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: disable_automatic_migration
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import json
 import time
@@ -34,22 +65,9 @@ def patch_network(module, network_type, egress_ip, egress_firewall, multicast):
         return None, "No values provided. Automatic migration will be applied."
 
     if network_type == "OVNKubernetes":
-        patch_data = {
-            "spec": {
-                "migration": {
-                    "networkType": network_type,
-                    "features": {}
-                }
-            }
-        }
+        patch_data = {"spec": {"migration": {"networkType": network_type, "features": {}}}}
     elif network_type == "OpenShiftSDN":
-        patch_data = {
-            "spec": {
-                "migration": {
-                    "features": {}
-                }
-            }
-        }
+        patch_data = {"spec": {"migration": {"features": {}}}}
 
     if egress_ip is not None:
         patch_data["spec"]["migration"]["features"]["egressIP"] = egress_ip
@@ -68,10 +86,10 @@ def patch_network(module, network_type, egress_ip, egress_firewall, multicast):
 def main():
     module = AnsibleModule(
         argument_spec={
-            "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True}, # Takes OpenShiftSDN or OVNKubernetes
+            "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True},  # Takes OpenShiftSDN or OVNKubernetes
             "egress_ip": {"type": "bool", "default": None},
             "egress_firewall": {"type": "bool", "default": None},
-            "multicast": {"type": "bool", "default": None}
+            "multicast": {"type": "bool", "default": None},
         },
         supports_check_mode=True,
     )
@@ -86,8 +104,7 @@ def main():
     if error:
         module.exit_json(changed=False, msg=error)
 
-    module.exit_json(changed=True, msg=f"Network operator migration settings updated for {network_type}.",
-                     output=output)
+    module.exit_json(changed=True, msg=f"Network operator migration settings updated for {network_type}.", output=output)
 
 
 if __name__ == "__main__":

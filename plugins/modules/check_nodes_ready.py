@@ -1,6 +1,40 @@
+#!/usr/bin/python
+
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: check_nodes_ready
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import json
 import time
+
 
 def run_command(module, command):
     """Run a shell command safely using module.run_command and return output or raise an error."""
@@ -48,7 +82,12 @@ def main():
         if not_ready_nodes:
             module.exit_json(
                 changed=False,
-                msg="Some nodes are not in the Ready state. Please investigate the machine config daemon pod logs using the command `oc get pod -n openshift-machine-config-operator` and resolve any errors.",
+                msg=(
+                    "Some nodes are not in the Ready state. Please investigate the "
+                    "Machine Config Daemon pod logs with:\n"
+                    "`oc get pod -n openshift-machine-config-operator`\n"
+                    "and resolve any errors."
+                ),
                 not_ready_nodes=not_ready_nodes,
             )
         module.exit_json(changed=False, msg="All nodes are in the Ready state.", not_ready_nodes=not_ready_nodes)

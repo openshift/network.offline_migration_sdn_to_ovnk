@@ -12,4 +12,3 @@ skip_list:
   - no-changed-when            # idempotency guard missing
   - no-handler                 # notify without handler
   - fqcn                       # builtin module FQCN
-

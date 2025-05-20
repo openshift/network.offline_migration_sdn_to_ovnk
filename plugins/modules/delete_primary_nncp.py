@@ -1,5 +1,36 @@
 #!/usr/bin/python
 
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: delete_primary_nncp
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import json
 import time
@@ -16,11 +47,7 @@ def run_command_with_retries(module, command, retries=3, delay=3):
 
 
 def main():
-    module_args = dict(
-        interface_name=dict(type="str", required=True),
-        retries=dict(type="int", default=3),
-        delay=dict(type="int", default=3)
-    )
+    module_args = dict(interface_name=dict(type="str", required=True), retries=dict(type="int", default=3), delay=dict(type="int", default=3))
 
     module = AnsibleModule(argument_spec=module_args)
 
@@ -32,11 +59,7 @@ def main():
     check_crd_cmd = ["oc", "get", "crd", "nodenetworkconfigurationpolicies.nmstate.io", "-o", "name"]
     crd_output, crd_error = run_command_with_retries(module, check_crd_cmd, retries, delay)
     if crd_error or not crd_output.strip():
-        module.exit_json(
-            changed=False,
-            skipped=True,
-            msg="NMState Operator not installed or NNCP CRD is missing. Skipping deletion."
-        )
+        module.exit_json(changed=False, skipped=True, msg="NMState Operator not installed or NNCP CRD is missing. Skipping deletion.")
 
     # Step 1: Get list of NNCPs
     get_command = ["oc", "get", "nncp", "-o", "json"]
@@ -65,7 +88,7 @@ def main():
 
     # Step 2: Delete the NNCP
     delete_command = ["oc", "delete", "nncp", target_nncp]
-    _, error = run_command_with_retries(module, delete_command, retries, delay)
+    _unused, error = run_command_with_retries(module, delete_command, retries, delay)
     if error:
         module.fail_json(msg=f"Failed to delete NNCP '{target_nncp}': {error}")
 

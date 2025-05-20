@@ -4,8 +4,6 @@ set -x
 
 NAMESPACE=${NAMESPACE:-default}
 
-
-component='ansible-test-runner'
 if [[ -n "${ANSIBLE_TEST_IMAGE}" ]]; then
   IMAGE="${ANSIBLE_TEST_IMAGE}"
 else

@@ -6,7 +6,7 @@
 ###############################################################################
 # CONFIG
 ###############################################################################
-COLL_DIR="."                                       # where galaxy.yml lives
+COLL_DIR="$HOME/.ansible/collections/ansible_collections/network/offline_migration_sdn_to_ovnk"                                       # where galaxy.yml lives
 LOGFILE="${LOGFILE:-/logs/collection_ci.log}"            # artefact name
 
 ###############################################################################
@@ -29,37 +29,32 @@ log "🚀  Starting collection CI pipeline"
 
 # 1️⃣ Build
 log "📦  Building the Ansible collection…"
-ansible-galaxy collection build "$COLL_DIR" --force | tee -a "$LOGFILE"
+ansible-galaxy collection build . --force | tee -a "$LOGFILE"
 
 # 2️⃣ Determine the brand-new tarball name
-TARBALL=$(ls -1 network-offline_migration_sdn_to_ovnk-*.tar.gz | tail -n 1 || true)
+# returns the lexicographically-last tarball or an empty string
+TARBALL=$(find . -maxdepth 1 -type f -name 'network-offline_migration_sdn_to_ovnk-*.tar.gz' \
+           -print | sort | tail -n 1)
+
 if [[ -z "$TARBALL" ]]; then
   log "❌ No collection tarball found after build step!"
   exit 1
 fi
 log "🆕  Built artifact: $TARBALL"
 
-# 3️⃣ Install it into the controller’s default path
+# 3️⃣ Install it into the controller's default path
 log "📥  Installing $TARBALL …"
-ansible-galaxy collection install --force -p ansible_collections "./${TARBALL}" | tee -a "$LOGFILE"
+ansible-galaxy collection install --force "./${TARBALL}" | tee -a "$LOGFILE"
 
-log "🔍  Running ansible-lint --profile production …"
-cd ansible_collections/network/offline_migration_sdn_to_ovnk/
+log "🔍  Running ansible-test sanity …"
+cd "$COLL_DIR"
 ansible-test sanity \
   --python 3.12 \
-  --skip-test ansible-doc \
-  --skip-test import \
-  --skip-test no-smart-quotes \
-  --skip-test pep8 \
-  --skip-test pylint \
-  --skip-test runtime-metadata \
-  --skip-test shebang \
-  --skip-test validate-modules \
-  --skip-test yamllint | tee -a "$LOGFILE"
+  --skip-test validate-modules  | tee -a "$LOGFILE"
 rc=${PIPESTATUS[0]}
 if [[ $rc -ne 0 ]]; then
   log "❌ ansible-test sanity failed with exit code $rc"
-  exit $rc
+  exit "$rc"
 fi
 
 log "✅  Collection built, installed, and passed sanity checks successfully"
