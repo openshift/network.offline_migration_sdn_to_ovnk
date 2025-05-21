@@ -53,9 +53,13 @@
 
 - name: Warn if OpenShift version is < 4.12
   ansible.builtin.debug:
-    msg: "Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall, and multicast features of SDN won't be automatically migrated in OVNKubernetes.
-      You need to manually configure them."
-  when: version_major | int == 4 and version_minor | int <= 11
+    msg: >
+      Warning: The OpenShift version is {{ ocp_version }}. EgressIP, EgressFirewall,
+      and multicast features of SDN will not be migrated automatically when moving
+      to OVNKubernetes. You must configure them manually.
+  when:
+    - version_major | int == 4
+    - version_minor | int <= 11
 
 - name: Check if disable auto migration is set
   ansible.builtin.set_fact:
@@ -67,7 +71,10 @@
     msg: "disable_auto_migration is set to {{ disable_auto_migration }}."
 
 - name: Apply SDN Migration Settings if OpenShift is 4.12 or Higher
-  when: version_major | int == 4 and version_minor | int >= 12 and disable_auto_migration == true # One-time check before executing block
+  when:
+    - version_major | int == 4
+    - version_minor | int >= 12
+    - disable_auto_migration | bool
 
   block:
     - name: Disable OpenShift SDN Migration Features

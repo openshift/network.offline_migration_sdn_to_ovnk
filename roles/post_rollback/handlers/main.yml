@@ -1,0 +1,3 @@
+- name: Show cluster operators status
+  ansible.builtin.command: oc get co
+  changed_when: false                 # read-only command

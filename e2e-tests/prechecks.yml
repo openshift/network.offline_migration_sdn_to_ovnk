@@ -1,4 +1,9 @@
 ---
-- import_playbook: test_check_oc_client.yml
-- import_playbook: test_check_kubeconfig.yml
-- import_playbook: test_check_whoami.yml
+- name: Check oc client is present
+  import_playbook: test_check_oc_client.yml
+
+- name: Validate kubeconfig access
+  import_playbook: test_check_kubeconfig.yml
+
+- name: Confirm current user (whoami)
+  import_playbook: test_check_whoami.yml

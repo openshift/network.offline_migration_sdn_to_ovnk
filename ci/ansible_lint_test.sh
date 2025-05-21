@@ -6,6 +6,7 @@
 ###############################################################################
 # CONFIG
 ###############################################################################
+COLL_DIR="$HOME/.ansible/collections/ansible_collections/network/offline_migration_sdn_to_ovnk"
 LOGFILE="${LOGFILE:-/logs/collection_ci.log}"            # artefact name
 
 ###############################################################################
@@ -46,6 +47,7 @@ log "📥  Installing $TARBALL …"
 ansible-galaxy collection install --force "./${TARBALL}" | tee -a "$LOGFILE"
 
 log "🔍  Running ansible-lint --profile production …"
+cd "$COLL_DIR"
 ansible-lint --profile production | tee -a "$LOGFILE"
 rc=${PIPESTATUS[0]}
 if [[ $rc -ne 0 ]]; then

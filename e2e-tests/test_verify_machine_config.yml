@@ -2,13 +2,11 @@
 - name: End-to-End Test for verify_machine_config Module (Real OpenShift)
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     verify_machine_config_timeout: 15
   tasks:
     - name: Run verify_machine_config module (Failure due to config mismatch)
-      verify_machine_config:
+      network.offline_migration_sdn_to_ovnk.verify_machine_config:
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_config_mismatch
@@ -26,7 +24,7 @@
       when: result_config_mismatch is failed
 
     - name: Run verify_machine_config module (Failure due to node not ready)
-      verify_machine_config:
+      network.offline_migration_sdn_to_ovnk.verify_machine_config:
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_node_not_ready
@@ -44,7 +42,7 @@
       when: result_node_not_ready is failed
 
     - name: Run verify_machine_config module (Failure due to missing ExecStart)
-      verify_machine_config:
+      network.offline_migration_sdn_to_ovnk.verify_machine_config:
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_execstart_missing
@@ -62,7 +60,7 @@
       when: result_execstart_missing is failed
 
     - name: Run verify_machine_config module (Success scenario)
-      verify_machine_config:
+      network.offline_migration_sdn_to_ovnk.verify_machine_config:
         timeout: "{{ verify_machine_config_timeout }}"
         network_type: "OVNKubernetes"
       register: result_success

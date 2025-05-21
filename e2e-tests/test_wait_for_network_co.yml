@@ -2,13 +2,11 @@
 - name: End-to-End Test for wait_for_network_co Module (Real OpenShift)
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     ovn_co_timeout: 120 # Set a reasonable timeout for the test
   tasks:
     - name: Run wait_for_network_co module (Success scenario)
-      wait_for_network_co:
+      network.offline_migration_sdn_to_ovnk.wait_for_network_co:
         timeout: "{{ ovn_co_timeout }}"
       register: result_success
 
@@ -24,7 +22,7 @@
       when: result_success is success
 
     - name: Run wait_for_network_co module (Failure due to timeout)
-      wait_for_network_co:
+      network.offline_migration_sdn_to_ovnk.wait_for_network_co:
         timeout: 1 # Force an immediate timeout
       register: result_timeout
       ignore_errors: true

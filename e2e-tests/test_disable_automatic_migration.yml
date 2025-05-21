@@ -2,8 +2,6 @@
 - name: End-to-End Test for `patch_network` Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     valid_network_types:
       - OpenShiftSDN
@@ -31,7 +29,7 @@
 
     # ✅ Test Case 1: Valid Input (OVNKubernetes, Egress Firewall Disabled)
     - name: Run patch_network module with OVNKubernetes
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "OVNKubernetes"
         egress_ip: false
         egress_firewall: false
@@ -53,7 +51,7 @@
 
     # ✅ Test Case 2: Valid Input (OpenShiftSDN, Only Multicast Disabled)
     - name: Run patch_network module with OpenShiftSDN
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "OpenShiftSDN"
         multicast: false
       register: test_result_valid_sdn
@@ -73,7 +71,7 @@
 
     # ❌ Test Case 3: Invalid Network Type
     - name: Run patch_network module with invalid network type
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "InvalidNetwork"
         egress_ip: false
       register: test_result_invalid_network
@@ -94,7 +92,7 @@
 
     # ❌ Test Case 4: No Parameters Provided
     - name: Run patch_network module without parameters
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "OVNKubernetes"
       register: test_result_no_params
       ignore_errors: true

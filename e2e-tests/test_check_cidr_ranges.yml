@@ -2,8 +2,6 @@
 - name: End-to-End Tests for `check_cidr_ranges` module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     conflicting_cidr_ranges:
       - "100.64.0.0/16"
@@ -12,10 +10,9 @@
       - "fd98::/64"
       - "fd69::/125"
       - "fd97::/64"
-
   tasks:
     - name: Run `check_cidr_ranges` module with test CIDRs
-      check_cidr_ranges:
+      network.offline_migration_sdn_to_ovnk.check_cidr_ranges:
         conflicting_ranges: "{{ conflicting_cidr_ranges }}"
         timeout: 60 # Lower timeout for testing
       register: cidr_check_result

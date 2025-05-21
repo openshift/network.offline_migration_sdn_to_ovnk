@@ -2,12 +2,9 @@
 - name: End-to-End Test for delete_primary_nncp module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     test_interface_name: "ens5" # Replace with the actual primary interface name used in your test env
     test_nncp_name: "test-primary-nncp"
-
   tasks:
     - name: Check if NNCP CRD exists
       ansible.builtin.command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
@@ -25,6 +22,9 @@
     - name: Create dummy NNCP for test
       ansible.builtin.copy:
         dest: "/tmp/{{ test_nncp_name }}.yaml"
+        mode: "0644"        # explicit, safe permissions
+        owner: root         # optional but recommended
+        group: root         # optional but recommended
         content: |
           apiVersion: nmstate.io/v1
           kind: NodeNetworkConfigurationPolicy
@@ -59,7 +59,7 @@
       failed_when: wait_result.rc != 0
 
     - name: Run delete_primary_nncp module
-      delete_primary_nncp:
+      network.offline_migration_sdn_to_ovnk.delete_primary_nncp:
         interface_name: "{{ test_interface_name }}"
       register: delete_result
 

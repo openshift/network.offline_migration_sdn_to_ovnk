@@ -2,19 +2,16 @@
 - name: End-to-End Test for check_cluster_operators Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     max_timeout: 90 # ⏳ Short timeout for quick testing
     pause_between_checks: 5 # ⏸️ Reduce wait time between checks
     required_success_count: 2 # ✅ Require only 2 passes for testing
     fake_oc_wait_success: "echo 'Condition met'"
     fake_oc_wait_failure: "echo 'Condition failed' && exit 1"
-
   tasks:
     # ✅ Test Case 1: Cluster Operators Are Healthy
     - name: Run check_cluster_operators module (Success Scenario)
-      verify_cluster_operators_health:
+      network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
         max_timeout: "{{ max_timeout }}"
         pause_between_checks: "{{ pause_between_checks }}"
         required_success_count: "{{ required_success_count }}"
@@ -37,7 +34,7 @@
 
     # ❌ Test Case 2: Cluster Operators Have Issues (Failure)
     - name: Run check_cluster_operators module (Failure Scenario)
-      verify_cluster_operators_health:
+      network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
         max_timeout: "{{ max_timeout }}"
         pause_between_checks: "{{ pause_between_checks }}"
         required_success_count: "{{ required_success_count }}"
@@ -60,7 +57,7 @@
 
     # 🔄 Test Case 3: Mixed Scenario (First Fails, Then Succeeds)
     - name: Run check_cluster_operators module (Mixed Scenario)
-      verify_cluster_operators_health:
+      network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
         max_timeout: "{{ max_timeout }}"
         pause_between_checks: "{{ pause_between_checks }}"
         required_success_count: "{{ required_success_count }}"

@@ -1,0 +1,5 @@
+# roles/post_migration/handlers/main.yml
+---
+- name: Display cluster operators status
+  ansible.builtin.command: oc get co
+  changed_when: false

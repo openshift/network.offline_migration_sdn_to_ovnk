@@ -2,11 +2,9 @@
 - name: Test `check_whoami` custom module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   tasks:
     - name: Run check_whoami module
-      check_whoami:
+      network.offline_migration_sdn_to_ovnk.check_whoami:
       register: oc_whoami_result
 
     - name: Debug output of check_whoami

@@ -2,15 +2,12 @@
 - name: End-to-End Tests for `change_network_type` module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     network_type: "OVNKubernetes"
     change_migration_timeout: 60 # Lower timeout for testing
-
   tasks:
     - name: Run `change_network_type` module
-      change_network_type:
+      network.offline_migration_sdn_to_ovnk.change_network_type:
         network_type: "{{ network_type }}"
         timeout: "{{ change_migration_timeout }}"
       register: change_network_result

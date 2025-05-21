@@ -20,10 +20,7 @@
     required_success_count: 3
     checks: "{{ checks }}"
   register: result
-
-- name: Display the cluster operators status
-  ansible.builtin.command: oc get co
-  when: result.changed
+  notify: Show cluster operators status
 
 - name: Verify machine configuration status on nodes
   verify_machine_config:
@@ -69,6 +66,7 @@
 - name: Confirm that no pods are in an error state
   ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
+  changed_when: false        # <- marks the task as “ok” instead of “changed”
 
 - name: Notify user if any pods are in an error state
   ansible.builtin.debug:

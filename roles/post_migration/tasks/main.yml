@@ -6,10 +6,7 @@
     required_success_count: 3
     checks: "{{ checks }}"
   register: result
-
-- name: Display the cluster operators status
-  ansible.builtin.command: oc get co
-  when: result.changed
+  notify: Display cluster operators status   # 👈  trigger the handler when changed
 
 - name: Check the CNI network provider
   check_network_provider:
@@ -50,6 +47,7 @@
 - name: Confirm that no pods are in an error state
   ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
+  changed_when: false        # <- marks the task as “ok” instead of “changed”
 
 - name: Notify user if any pods are in an error state
   ansible.builtin.debug:

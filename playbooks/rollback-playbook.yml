@@ -16,12 +16,12 @@
         sdn_multus_timeout: 300 # Timeout in seconds for waiting for Multus pods
         verify_machine_config_timeout: 300
         disable_auto_migration: false # true enables disable_automatic_migration. You will need to set egress_ip, egress_firewall and multicast as follows:
-        #egress_ip: false
-        #egress_firewall: false
-        #multicast: false
+        # egress_ip: false
+        # egress_firewall: false
+        # multicast: false
         configure_network_type: openshiftSDN
-        #mtu: 1400
-        #vxlanPort: 4790
+        # mtu: 1400
+        # vxlanPort: 4790
         checks:
           - "oc wait co --all --for='condition=Available=True' --timeout=60s"
           - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"

@@ -30,11 +30,11 @@
           - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
         disable_auto_migration: false # true enables disable_automatic_migration. You will need to set egress_ip, egress_firewall and multicast as follows:
-        #egress_ip: false
-        #egress_firewall: false
-        #multicast: false
+        # egress_ip: false
+        # egress_firewall: false
+        # multicast: false
         configure_network_type: ovnKubernetes
-        #mtu: 1400
-        #geneve_port: 6081
-        #ipv4_subnet: "100.64.0.0/16"
-        #interface_name: eth0
+        # mtu: 1400
+        # geneve_port: 6081
+        # ipv4_subnet: "100.64.0.0/16"
+        # interface_name: eth0
