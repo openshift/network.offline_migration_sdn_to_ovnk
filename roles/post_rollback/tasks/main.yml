@@ -6,7 +6,7 @@
 
 - name: Wait until MCO starts applying new machine config to nodes
   wait_for_mco:
-    timeout: "{{ mco_timeout }}"
+    timeout: "{{ post_rollback_mco_timeout }}"
   register: mco_status
 
 - name: Print MCO status message
@@ -18,18 +18,18 @@
     max_timeout: 3600
     pause_between_checks: 30
     required_success_count: 3
-    checks: "{{ checks }}"
+    checks: "{{ post_rollback_checks }}"
   register: result
   notify: Show cluster operators status
 
 - name: Verify machine configuration status on nodes
   verify_machine_config:
-    timeout: "{{ verify_machine_config_timeout }}"
+    timeout: "{{ post_rollback_verify_machine_config_timeout }}"
     network_type: "OpenShiftSDN"
 
 - name: Check the CNI network provider
   check_network_provider:
-    expected_network_type: "{{ expected_network_type }}"
+    expected_network_type: "{{ post_rollback_expected_network_type }}"
   register: result
 
 - name: Display the result of the network provider check
@@ -66,7 +66,7 @@
 - name: Confirm that no pods are in an error state
   ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
-  changed_when: false        # <- marks the task as “ok” instead of “changed”
+  changed_when: false        # <- marks the task as "ok" instead of "changed"
 
 - name: Notify user if any pods are in an error state
   ansible.builtin.debug:
@@ -78,12 +78,12 @@
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
   clean_migration_field:
-    timeout: "{{ clean_migration_timeout }}"
+    timeout: "{{ post_rollback_clean_migration_timeout }}"
 
 - name: Remove network configuration and namespace
   manage_network_config:
-    network_provider_config: "{{ network_provider_config }}"
-    namespace: "{{ namespace }}"
+    network_provider_config: "{{ post_rollback_network_provider_config }}"
+    namespace: "{{ post_rollback_namespace }}"
   register: result
 
 - name: Notify user about the result
@@ -95,5 +95,5 @@
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
-    checks: "{{ checks }}"
+    checks: "{{ post_rollback_checks }}"
   register: result

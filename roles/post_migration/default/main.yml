@@ -1,10 +1,10 @@
 ---
 ovn_sdn_migration_timeout: 180
-checks:
+post_migration_checks:
   - "oc wait co --all --for='condition=Available=True' --timeout=60s"
   - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
   - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
 # Default expected network type
-expected_network_type: OVNKubernetes
-network_provider_config: openshiftSDNConfig
-namespace: openshift-sdn
+post_migration_expected_network_type: OVNKubernetes
+post_migration_network_provider_config: openshiftSDNConfig
+post_migration_namespace: openshift-sdn

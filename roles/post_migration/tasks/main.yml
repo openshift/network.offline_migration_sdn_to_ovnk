@@ -4,13 +4,13 @@
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
-    checks: "{{ checks }}"
+    checks: "{{ post_migration_checks }}"
   register: result
   notify: Display cluster operators status   # 👈  trigger the handler when changed
 
 - name: Check the CNI network provider
   check_network_provider:
-    expected_network_type: "{{ expected_network_type }}"
+    expected_network_type: "{{ post_migration_expected_network_type }}"
   register: result
 
 - name: Display the result of the network provider check
@@ -47,7 +47,7 @@
 - name: Confirm that no pods are in an error state
   ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
-  changed_when: false        # <- marks the task as “ok” instead of “changed”
+  changed_when: false        # <- marks the task as "ok" instead of "changed"
 
 - name: Notify user if any pods are in an error state
   ansible.builtin.debug:
@@ -59,12 +59,12 @@
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
   clean_migration_field:
-    timeout: "{{ clean_migration_timeout }}"
+    timeout: "{{ post_migration_clean_migration_timeout }}"
 
 - name: Remove network configuration and namespace
   manage_network_config:
-    network_provider_config: "{{ network_provider_config }}"
-    namespace: "{{ namespace }}"
+    network_provider_config: "{{ post_migration_network_provider_config }}"
+    namespace: "{{ post_migration_namespace }}"
   register: result
 
 - name: Notify user about the result
@@ -76,5 +76,5 @@
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
-    checks: "{{ checks }}"
+    checks: "{{ post_migration_checks }}"
   register: result

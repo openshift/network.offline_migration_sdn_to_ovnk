@@ -7,34 +7,34 @@
   roles:
     - role: migration
       vars:
-        co_timeout: 1200
-        clean_migration_timeout: 120
-        change_migration_timeout: 120
-        network_type: OVNKubernetes
-        mco_update_timeout: 300s
-        mcp_completion_timeout: 18000 # Timeout in seconds
-        ovn_co_timeout: 120 # Timeout in seconds
-        ovn_multus_timeout: 300 # Timeout in seconds for waiting for Multus pods
-        verify_machine_config_timeout: 300
-        conflicting_cidr_ranges:
+        migration_clean_migration_timeout: 120
+        migration_change_migration_timeout: 120
+        migration_network_type: OVNKubernetes
+        migration_mcp_completion_timeout: 18000 # Timeout in seconds
+        migration_ovn_co_timeout: 120 # Timeout in seconds
+        migration_ovn_multus_timeout: 300 # Timeout in seconds for waiting for Multus pods
+        migration_verify_machine_config_timeout: 300
+        migration_conflicting_cidr_ranges:
           - "100.64.0.0/16"
           - "169.254.169.0/29"
           - "100.88.0.0/16"
           - "fd98::/64"
           - "fd69::/125"
           - "fd97::/64"
-        checks:
+        migration_checks:
           - "oc wait co --all --for='condition=Available=True' --timeout=60s"
           - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
           - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
-        disable_auto_migration: false # true enables disable_automatic_migration. You will need to set egress_ip, egress_firewall and multicast as follows:
-        # egress_ip: false
-        # egress_firewall: false
-        # multicast: false
-        configure_network_type: ovnKubernetes
-        # mtu: 1400
-        # geneve_port: 6081
-        # ipv4_subnet: "100.64.0.0/16"
-        # interface_name: eth0
+        migration_disable_auto_migration: false # true enables disable_automatic_migration.
+        # You will need to set migration_egress_ip, migration_egress_firewall and migration_multicast as follows:
+        # migration_egress_ip: false
+        # migration_egress_firewall: false
+        # migration_multicast: false
+        migration_configure_network_type: ovnKubernetes
+        # migration_mtu: 1400
+        # migration_geneve_port: 6081
+        # migration_ipv4_subnet: "100.64.0.0/16"
+        # Primary interface to check if nncp is installed on it.
+        # migration_interface_name: eth0

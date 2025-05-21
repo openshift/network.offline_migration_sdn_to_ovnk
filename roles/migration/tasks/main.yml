@@ -4,12 +4,12 @@
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
-    checks: "{{ checks }}"
+    checks: "{{ migration_checks }}"
   register: result
 
 - name: Check for conflicting CIDR ranges
   check_cidr_ranges:
-    conflicting_ranges: "{{ conflicting_cidr_ranges }}"
+    conflicting_ranges: "{{ migration_conflicting_cidr_ranges }}"
   register: result
 
 - name: Display conflicting CIDRs if found
@@ -40,7 +40,7 @@
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
   clean_migration_field:
-    timeout: "{{ clean_migration_timeout }}"
+    timeout: "{{ migration_clean_migration_timeout }}"
 
 - name: Check if NNCP CRD exists with retries
   ansible.builtin.command: oc get crd nodenetworkconfigurationpolicies.nmstate.io -o name
@@ -53,7 +53,7 @@
 
 - name: Delete NNCP for primary interface if exists
   delete_primary_nncp:
-    interface_name: "{{ interface_name }}"
+    interface_name: "{{ migration_interface_name }}"
   when:
     - interface_name is defined
     - interface_name | length > 0
@@ -61,18 +61,18 @@
 
 - name: Check if disable auto migration is set
   ansible.builtin.set_fact:
-    disable_auto_migration: "{{ disable_auto_migration }}"
+    disable_auto_migration: "{{ migration_disable_auto_migration }}"
   failed_when: disable_auto_migration is not defined
 
 - name: Display message when disable_auto_migration is set to true
   ansible.builtin.debug:
-    msg: "disable_auto_migration is set to {{ disable_auto_migration }}."
+    msg: "disable_auto_migration is set to {{ migration_disable_auto_migration }}."
 
 - name: Change network type to trigger MCO update
   when: not (disable_auto_migration | default(false) | bool) # runs only when the var is false
   change_network_type:
-    network_type: "{{ network_type }}"
-    timeout: "{{ change_migration_timeout }}"
+    network_type: "{{ migration_network_type }}"
+    timeout: "{{ migration_change_migration_timeout }}"
 
 - name: Get OpenShift version using custom module
   get_ocp_version:
@@ -104,10 +104,10 @@
   block:
     - name: Disable OpenShift SDN Migration Features
       disable_automatic_migration:
-        network_type: "{{ network_type }}"
-        egress_ip: "{{ egress_ip | default(omit) }}"
-        egress_firewall: "{{ egress_firewall | default(omit) }}"
-        multicast: "{{ multicast | default(omit) }}"
+        network_type: "{{ migration_network_type }}"
+        egress_ip: "{{ migration_egress_ip | default(omit) }}"
+        egress_firewall: "{{ migration_egress_firewall | default(omit) }}"
+        multicast: "{{ migration_multicast | default(omit) }}"
       register: patch_result
 
     - name: Display Patch Result
@@ -115,10 +115,10 @@
         var: patch_result
 - name: Customize network settings if parameters are provided
   configure_network_settings:
-    configure_network_type: ovnKubernetes
-    mtu: "{{ mtu | default(omit) }}"
-    geneve_port: "{{ geneve_port | default(omit) }}"
-    ipv4_subnet: "{{ ipv4_subnet | default(omit) }}"
+    configure_network_type: "{{ migration_configure_network_type }}"
+    mtu: "{{ migration_mtu | default(omit) }}"
+    geneve_port: "{{ migration_geneve_port | default(omit) }}"
+    ipv4_subnet: "{{ migration_ipv4_subnet | default(omit) }}"
     retries: 3
     delay: 5
   register: patch_result
@@ -129,7 +129,7 @@
 
 - name: Wait until MCO starts applying new machine config to nodes
   wait_for_mco:
-    timeout: "{{ mco_timeout }}"
+    timeout: "{{ migration_mco_timeout }}"
   register: mco_status
 
 - name: Print MCO status message
@@ -138,21 +138,21 @@
 
 - name: Wait for MCO to finish its work
   wait_for_mco_completion:
-    timeout: "{{ mcp_completion_timeout }}"
+    timeout: "{{ migration_mcp_completion_timeout }}"
 
 - name: Verify machine configuration status on nodes
   verify_machine_config:
-    timeout: "{{ verify_machine_config_timeout }}"
+    timeout: "{{ migration_verify_machine_config_timeout }}"
     network_type: "OVNKubernetes"
 
 - name: Trigger OVN-Kubernetes deployment
   trigger_network_type:
-    network_type: "{{ network_type }}"
-    timeout: "{{ ovn_co_timeout }}"
+    network_type: "{{ migration_network_type }}"
+    timeout: "{{ migration_ovn_co_timeout }}"
 
 - name: Wait until the Network Cluster Operator is in PROGRESSING=True state
   wait_for_network_co:
-    timeout: "{{ ovn_co_timeout }}"
+    timeout: "{{ migration_ovn_co_timeout }}"
   register: network_co_status
 
 - name: Display the status of the Network Cluster Operator
@@ -161,4 +161,4 @@
 
 - name: Wait for Multus pods to restart
   wait_multus_restart:
-    timeout: "{{ ovn_multus_timeout }}"
+    timeout: "{{ migration_ovn_multus_timeout }}"
