@@ -1,6 +1,6 @@
 ---
 - name: Reboot master nodes
-  reboot_nodes:
+  network.offline_migration_sdn_to_ovnk.reboot_nodes:
     role: "master"
     namespace: "openshift-machine-config-operator"
     daemonset_label: "machine-config-daemon"
@@ -10,7 +10,7 @@
     timeout: 1800
 
 - name: Reboot worker nodes
-  reboot_nodes:
+  network.offline_migration_sdn_to_ovnk.reboot_nodes:
     role: "worker"
     namespace: "openshift-machine-config-operator"
     daemonset_label: "machine-config-daemon"

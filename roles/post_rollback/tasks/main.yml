@@ -1,11 +1,11 @@
 ---
 - name: Resume MCPs after reboot
-  resume_mcp:
+  network.offline_migration_sdn_to_ovnk.resume_mcp:
     timeout: 1800
     sleep_interval: 10
 
 - name: Wait until MCO starts applying new machine config to nodes
-  wait_for_mco:
+  network.offline_migration_sdn_to_ovnk.wait_for_mco:
     timeout: "{{ post_rollback_mco_timeout }}"
   register: mco_status
 
@@ -14,7 +14,7 @@
     msg: "{{ mco_status.msg }}"
 
 - name: Check all cluster operators back to normal
-  verify_cluster_operators_health:
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
     max_timeout: 3600
     pause_between_checks: 30
     required_success_count: 3
@@ -23,12 +23,12 @@
   notify: Show cluster operators status
 
 - name: Verify machine configuration status on nodes
-  verify_machine_config:
+  network.offline_migration_sdn_to_ovnk.verify_machine_config:
     timeout: "{{ post_rollback_verify_machine_config_timeout }}"
     network_type: "OpenShiftSDN"
 
 - name: Check the CNI network provider
-  check_network_provider:
+  network.offline_migration_sdn_to_ovnk.check_network_provider:
     expected_network_type: "{{ post_rollback_expected_network_type }}"
   register: result
 
@@ -37,7 +37,7 @@
     msg: "{{ result.msg }}"
 
 - name: Check if all cluster nodes are in Ready state
-  check_nodes_ready:
+  network.offline_migration_sdn_to_ovnk.check_nodes_ready:
   register: node_status
 
 - name: Notify user about NotReady nodes
@@ -77,11 +77,11 @@
   when: "'Error' in all_pods.stdout or 'CrashLoopBackOff' in all_pods.stdout"
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
-  clean_migration_field:
+  network.offline_migration_sdn_to_ovnk.clean_migration_field:
     timeout: "{{ post_rollback_clean_migration_timeout }}"
 
 - name: Remove network configuration and namespace
-  manage_network_config:
+  network.offline_migration_sdn_to_ovnk.manage_network_config:
     network_provider_config: "{{ post_rollback_network_provider_config }}"
     namespace: "{{ post_rollback_namespace }}"
   register: result
@@ -91,7 +91,7 @@
     msg: "{{ result.msg }}"
 
 - name: Check all cluster operators back to normal
-  verify_cluster_operators_health:
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3

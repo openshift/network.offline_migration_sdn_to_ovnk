@@ -2,10 +2,8 @@
 - name: Rollback
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   roles:
-    - role: rollback
+    - role: network.offline_migration_sdn_to_ovnk.rollback
       vars:
         rollback_clean_migration_timeout: 120
         rollback_change_migration_timeout: 120

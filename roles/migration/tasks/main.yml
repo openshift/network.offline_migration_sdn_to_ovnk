@@ -1,6 +1,6 @@
 ---
 - name: Check all cluster operators are normal and mcp's are not in updating or degraded state
-  verify_cluster_operators_health:
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
@@ -8,7 +8,7 @@
   register: result
 
 - name: Check for conflicting CIDR ranges
-  check_cidr_ranges:
+  network.offline_migration_sdn_to_ovnk.check_cidr_ranges:
     conflicting_ranges: "{{ migration_conflicting_cidr_ranges }}"
   register: result
 
@@ -25,7 +25,7 @@
     msg: "{{ result.msg }}"
 
 - name: Check if the cluster is configured with NetworkPolicy isolation mode
-  check_network_policy_mode:
+  network.offline_migration_sdn_to_ovnk.check_network_policy_mode:
   register: result
 
 - name: Notify user if NetworkPolicy isolation mode is not set
@@ -39,7 +39,7 @@
     msg: "{{ result.msg }}"
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
-  clean_migration_field:
+  network.offline_migration_sdn_to_ovnk.clean_migration_field:
     timeout: "{{ migration_clean_migration_timeout }}"
 
 - name: Check if NNCP CRD exists with retries
@@ -52,7 +52,7 @@
   ignore_errors: true
 
 - name: Delete NNCP for primary interface if exists
-  delete_primary_nncp:
+  network.offline_migration_sdn_to_ovnk.delete_primary_nncp:
     interface_name: "{{ migration_interface_name }}"
   when:
     - interface_name is defined
@@ -70,12 +70,12 @@
 
 - name: Change network type to trigger MCO update
   when: not (disable_auto_migration | default(false) | bool) # runs only when the var is false
-  change_network_type:
+  network.offline_migration_sdn_to_ovnk.change_network_type:
     network_type: "{{ migration_network_type }}"
     timeout: "{{ migration_change_migration_timeout }}"
 
 - name: Get OpenShift version using custom module
-  get_ocp_version:
+  network.offline_migration_sdn_to_ovnk.get_ocp_version:
     retries: 3
     delay: 5
   register: openshift_version_result
@@ -103,7 +103,7 @@
     - disable_auto_migration | bool
   block:
     - name: Disable OpenShift SDN Migration Features
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "{{ migration_network_type }}"
         egress_ip: "{{ migration_egress_ip | default(omit) }}"
         egress_firewall: "{{ migration_egress_firewall | default(omit) }}"
@@ -114,7 +114,7 @@
       ansible.builtin.debug:
         var: patch_result
 - name: Customize network settings if parameters are provided
-  configure_network_settings:
+  network.offline_migration_sdn_to_ovnk.configure_network_settings:
     configure_network_type: "{{ migration_configure_network_type }}"
     mtu: "{{ migration_mtu | default(omit) }}"
     geneve_port: "{{ migration_geneve_port | default(omit) }}"
@@ -128,7 +128,7 @@
     msg: "{{ patch_result.msg }}"
 
 - name: Wait until MCO starts applying new machine config to nodes
-  wait_for_mco:
+  network.offline_migration_sdn_to_ovnk.wait_for_mco:
     timeout: "{{ migration_mco_timeout }}"
   register: mco_status
 
@@ -137,21 +137,21 @@
     msg: "{{ mco_status.msg }}"
 
 - name: Wait for MCO to finish its work
-  wait_for_mco_completion:
+  network.offline_migration_sdn_to_ovnk.wait_for_mco_completion:
     timeout: "{{ migration_mcp_completion_timeout }}"
 
 - name: Verify machine configuration status on nodes
-  verify_machine_config:
+  network.offline_migration_sdn_to_ovnk.verify_machine_config:
     timeout: "{{ migration_verify_machine_config_timeout }}"
     network_type: "OVNKubernetes"
 
 - name: Trigger OVN-Kubernetes deployment
-  trigger_network_type:
+  network.offline_migration_sdn_to_ovnk.trigger_network_type:
     network_type: "{{ migration_network_type }}"
     timeout: "{{ migration_ovn_co_timeout }}"
 
 - name: Wait until the Network Cluster Operator is in PROGRESSING=True state
-  wait_for_network_co:
+  network.offline_migration_sdn_to_ovnk.wait_for_network_co:
     timeout: "{{ migration_ovn_co_timeout }}"
   register: network_co_status
 
@@ -160,5 +160,5 @@
     msg: "{{ network_co_status.msg }}"
 
 - name: Wait for Multus pods to restart
-  wait_multus_restart:
+  network.offline_migration_sdn_to_ovnk.wait_multus_restart:
     timeout: "{{ migration_ovn_multus_timeout }}"

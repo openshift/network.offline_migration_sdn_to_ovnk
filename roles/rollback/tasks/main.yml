@@ -1,6 +1,6 @@
 ---
 - name: Get OpenShift version using custom module
-  get_ocp_version:
+  network.offline_migration_sdn_to_ovnk.get_ocp_version:
     retries: 3
     delay: 5
   register: openshift_version_result
@@ -17,26 +17,26 @@
   when: version_major | int == 4 and version_minor | int == 17
 
 - name: Pause updates for master MachineConfigPool
-  patch_mcp_paused:
+  network.offline_migration_sdn_to_ovnk.patch_mcp_paused:
     pool_name: "master"
     paused: true
 
 - name: Pause updates for worker MachineConfigPool
-  patch_mcp_paused:
+  network.offline_migration_sdn_to_ovnk.patch_mcp_paused:
     pool_name: "worker"
     paused: true
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
-  clean_migration_field:
+  network.offline_migration_sdn_to_ovnk.clean_migration_field:
     timeout: "{{ rollback_clean_migration_timeout }}"
 
 - name: Change network type to trigger MCO update
-  change_network_type:
+  network.offline_migration_sdn_to_ovnk.change_network_type:
     network_type: "{{ rollback_network_type }}"
     timeout: "{{ rollback_change_migration_timeout }}"
 
 - name: Check network migration status
-  check_network_migration:
+  network.offline_migration_sdn_to_ovnk.check_network_migration:
     expected_network_type: "{{ rollback_network_type }}"
     max_retries: "{{ rollback_max_retries }}"
     delay: "{{ rollback_retry_delay }}"
@@ -47,7 +47,7 @@
     var: network_migration_result
 
 - name: Trigger OpenshiftSDN deployment
-  trigger_network_type:
+  network.offline_migration_sdn_to_ovnk.trigger_network_type:
     network_type: "{{ rollback_network_type }}"
     timeout: "{{ rollback_sdn_co_timeout }}"
 
@@ -78,7 +78,7 @@
 
   block:
     - name: Disable OpenShift SDN Migration Features
-      disable_automatic_migration:
+      network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
         network_type: "{{ rollback_network_type }}"
         egress_ip: "{{ rollback_egress_ip | default(omit) }}"
         egress_firewall: "{{ rollback_egress_firewall | default(omit) }}"
@@ -88,8 +88,9 @@
     - name: Display Patch Result
       ansible.builtin.debug:
         var: patch_result
+
 - name: Customize network settings if parameters are provided
-  configure_network_settings:
+  network.offline_migration_sdn_to_ovnk.configure_network_settings:
     configure_network_type: "{{ rollback_configure_network_type }}"
     mtu: "{{ rollback_mtu | default(omit) }}"
     vxlanPort: "{{ rollback_vxlanPort | default(omit) }}"
@@ -102,7 +103,7 @@
     msg: "{{ patch_result.msg }}"
 
 - name: Wait until the Network Cluster Operator is in PROGRESSING=True state
-  wait_for_network_co:
+  network.offline_migration_sdn_to_ovnk.wait_for_network_co:
     timeout: "{{ rollback_sdn_co_timeout }}"
   register: network_co_status
 
@@ -111,5 +112,5 @@
     msg: "{{ network_co_status.msg }}"
 
 - name: Wait for Multus pods to restart
-  wait_multus_restart:
+  network.offline_migration_sdn_to_ovnk.wait_multus_restart:
     timeout: "{{ rollback_sdn_multus_timeout }}"

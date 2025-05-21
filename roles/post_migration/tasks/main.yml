@@ -1,6 +1,6 @@
 ---
 - name: Check all cluster operators back to normal
-  verify_cluster_operators_health:
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3
@@ -9,7 +9,7 @@
   notify: Display cluster operators status   # 👈  trigger the handler when changed
 
 - name: Check the CNI network provider
-  check_network_provider:
+  network.offline_migration_sdn_to_ovnk.check_network_provider:
     expected_network_type: "{{ post_migration_expected_network_type }}"
   register: result
 
@@ -18,7 +18,7 @@
     msg: "{{ result.msg }}"
 
 - name: Check if all cluster nodes are in Ready state
-  check_nodes_ready:
+  network.offline_migration_sdn_to_ovnk.check_nodes_ready:
   register: node_status
 
 - name: Notify user about NotReady nodes
@@ -58,11 +58,11 @@
   when: "'Error' in all_pods.stdout or 'CrashLoopBackOff' in all_pods.stdout"
 
 - name: Patch Network.operator.openshift.io and wait for migration field to clear
-  clean_migration_field:
+  network.offline_migration_sdn_to_ovnk.clean_migration_field:
     timeout: "{{ post_migration_clean_migration_timeout }}"
 
 - name: Remove network configuration and namespace
-  manage_network_config:
+  network.offline_migration_sdn_to_ovnk.manage_network_config:
     network_provider_config: "{{ post_migration_network_provider_config }}"
     namespace: "{{ post_migration_namespace }}"
   register: result
@@ -72,7 +72,7 @@
     msg: "{{ result.msg }}"
 
 - name: Check all cluster operators back to normal
-  verify_cluster_operators_health:
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
     max_timeout: 2700
     pause_between_checks: 30
     required_success_count: 3

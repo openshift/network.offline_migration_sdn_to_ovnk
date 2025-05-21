@@ -2,10 +2,8 @@
 - name: Migrate from OpenShift SDN to OVN-Kubernetes
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   roles:
-    - role: migration
+    - role: network.offline_migration_sdn_to_ovnk.migration
       vars:
         migration_clean_migration_timeout: 120
         migration_change_migration_timeout: 120

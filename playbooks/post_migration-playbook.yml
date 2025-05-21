@@ -2,10 +2,8 @@
 - name: Post Migration
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   roles:
-    - role: post_migration
+    - role: network.offline_migration_sdn_to_ovnk.post_migration
       vars:
         post_migration_checks:
           - "oc wait co --all --for='condition=Available=True' --timeout=60s"
