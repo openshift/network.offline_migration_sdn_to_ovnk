@@ -1,5 +1,3 @@
 ---
-test_retries: 3
-test_retry_delay: 5
-max_retries: 3
-retry_delay: 5
+rollback_max_retries: 3
+rollback_retry_delay: 5

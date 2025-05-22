@@ -2,11 +2,9 @@
 - name: End-to-End Test for configure_network_settings module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   tasks:
     - name: Apply network configuration changes
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: ovnKubernetes
       register: patch_result
 
@@ -15,7 +13,7 @@
         msg: "{{ patch_result.msg }}"
 
     - name: Apply network configuration changes
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: ovnKubernetes
         mtu: 1400
         geneve_port: 6081
@@ -48,7 +46,7 @@
         success_msg: "Network configuration successfully updated!"
 
     - name: Revert network configuration to default
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: ovnKubernetes
         mtu: 1500
         geneve_port: 6081
@@ -80,7 +78,7 @@
         success_msg: "Network configuration successfully reverted to default!"
 
     - name: Apply network configuration changes
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: ovnKubernetes
       register: patch_result
 
@@ -90,7 +88,7 @@
 
     # ✅ Test Case 1: Valid Input (ovnKubernetes, MTU and Geneve Port)
     - name: Run patch_network module with ovnKubernetes
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "ovnKubernetes"
         mtu: 1400
         geneve_port: 6081
@@ -115,7 +113,7 @@
 
     # ✅ Test Case 2: Valid Input (openshiftSDN, MTU and VXLAN Port)
     - name: Run patch_network module with openshiftSDN
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "openshiftSDN"
         mtu: 1450
         vxlanPort: 4789
@@ -140,7 +138,7 @@
 
     # ❌ Test Case 3: Invalid Network Type
     - name: Run patch_network module with invalid network type
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "invalidNetwork"
         mtu: 1400
       register: test_result_invalid_network
@@ -159,7 +157,7 @@
 
     # ❌ Test Case 4: No Parameters Provided
     - name: Run patch_network module without parameters
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "ovnKubernetes"
       register: test_result_no_params
       ignore_errors: true
@@ -177,7 +175,7 @@
 
     # ❌ Test Case 5: Invalid Parameters for Network Type
     - name: Run patch_network module with vxlanPort in ovnKubernetes
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "ovnKubernetes"
         vxlanPort: 4789
       register: test_result_invalid_param
@@ -195,7 +193,7 @@
 
     # ✅ Test Case 6: Check Mode (Dry Run)
     - name: Run patch_network module in check mode
-      configure_network_settings:
+      network.offline_migration_sdn_to_ovnk.configure_network_settings:
         configure_network_type: "ovnKubernetes"
         mtu: 1400
       register: test_result_check_mode

@@ -18,11 +18,13 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-  - your name <example@domain.com>
+  - Miheer Salunke (@miheer)
 
 ### OPTIONAL but strongly recommended
 # A short summary description of the collection
-description: your collection description
+description: >
+  Offline migration helper that switches an OpenShift cluster
+  from OpenShiftSDN to OVNKubernetes and back.
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
@@ -35,14 +37,17 @@ license_file: ""
 
 # A list of tags you want to associate with the collection for indexing/searching. A tag name has the same character
 # requirements as 'namespace' and 'name'
-tags: []
+tags:
+  - networking
+  - openshift
+  - kubernetes
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
 dependencies: {}
 # The URL of the originating SCM repository
-repository: http://example.com/repository
+repository: https://github.com/openshift/network.offline_migration_sdn_to_ovnk
 
 # The URL to any online docs
 documentation: http://docs.example.com
@@ -51,13 +56,17 @@ documentation: http://docs.example.com
 homepage: http://example.com
 
 # The URL to the collection issue tracker
-issues: http://example.com/issue/tracker
+issues: https://issues.redhat.com/browse/CORENET-658
 
 # A list of file glob-like patterns used to filter any files or directories that should not be included in the build
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
 # uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
 # and '.git' are always filtered. Mutually exclusive with 'manifest'
-build_ignore: []
+build_ignore:
+  - .git
+  - .github
+  - "docs/**"
+  - "e2e-tests/**"
 
 # A dict controlling use of manifest directives used in building the collection artifact. The key 'directives' is a
 # list of MANIFEST.in style

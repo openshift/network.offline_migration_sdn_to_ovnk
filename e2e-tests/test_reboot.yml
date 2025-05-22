@@ -2,13 +2,11 @@
 - name: End-to-End Test for reboot_nodes Module (Real OpenShift)
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     ovn_reboot_timeout: 1800
   tasks:
     - name: Run reboot_nodes module for master nodes (Success Scenario)
-      reboot_nodes:
+      network.offline_migration_sdn_to_ovnk.reboot_nodes:
         role: "master"
         namespace: "openshift-machine-config-operator"
         daemonset_label: "machine-config-daemon"
@@ -30,7 +28,7 @@
       when: result_master_success is success
 
     - name: Run reboot_nodes module for worker nodes (Success Scenario)
-      reboot_nodes:
+      network.offline_migration_sdn_to_ovnk.reboot_nodes:
         role: "worker"
         namespace: "openshift-machine-config-operator"
         daemonset_label: "machine-config-daemon"

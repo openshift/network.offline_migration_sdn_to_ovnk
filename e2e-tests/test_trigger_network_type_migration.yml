@@ -2,14 +2,12 @@
 - name: End-to-End Test for trigger_network_type Module (Real OpenShift. Dont execute as it will trigger migration.)
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     network_type: "OVNKubernetes"
     ovn_co_timeout: 60
   tasks:
     - name: Run trigger_network_type module (Failure due to invalid network type)
-      trigger_network_type:
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
         network_type: "InvalidNetwork"
         timeout: "{{ ovn_co_timeout }}"
       register: result_invalid_network
@@ -27,7 +25,7 @@
       when: result_invalid_network is failed
 
     - name: Run trigger_network_type module (Failure due to API timeout)
-      trigger_network_type:
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
         network_type: "{{ network_type }}"
         timeout: 1 # Force timeout
       register: result_timeout
@@ -45,7 +43,7 @@
       when: result_timeout is failed
 
     - name: Run trigger_network_type module (Success scenario)
-      trigger_network_type:
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
         network_type: "{{ network_type }}"
         timeout: "{{ ovn_co_timeout }}"
       register: result_success

@@ -2,15 +2,12 @@
 - name: End-to-End Tests for `get_ocp_version` module
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   vars:
     test_retries: 3
     test_delay: 5
-
   tasks:
     - name: Run `get_ocp_version` module
-      get_ocp_version:
+      network.offline_migration_sdn_to_ovnk.get_ocp_version:
         retries: "{{ test_retries }}"
         delay: "{{ test_delay }}"
       register: ocp_version_result

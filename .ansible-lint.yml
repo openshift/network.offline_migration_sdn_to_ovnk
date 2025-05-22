@@ -1,15 +1,2 @@
 # .ansible-lint.yml  (YAML works with every ansible-lint ≥5.0)
 profile: production
-
-skip_list:
-  - literal-compare            # comparing to True/False
-  - schema                     # meta/galaxy/runtime schema
-  - name                       # unnamed plays / tasks
-  - var-naming                 # role-local variable prefixes
-  - yaml                       # indentation / trailing spaces …
-  - risky-file-permissions     # file mode not set
-  - galaxy                     # missing tags / changelog
-  - no-changed-when            # idempotency guard missing
-  - no-handler                 # notify without handler
-  - fqcn                       # builtin module FQCN
-

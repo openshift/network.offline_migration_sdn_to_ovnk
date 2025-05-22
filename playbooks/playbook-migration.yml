@@ -1,5 +1,12 @@
 ---
-- import_playbook: prechecks-playbook.yml
-- import_playbook: migration-playbook.yml
-- import_playbook: reboot-playbook.yml
-- import_playbook: post_migration-playbook.yml
+- name: Run pre-migration checks
+  import_playbook: prechecks-playbook.yml
+
+- name: Execute migration
+  import_playbook: migration-playbook.yml
+
+- name: Reboot cluster nodes
+  import_playbook: reboot-playbook.yml
+
+- name: Verify post-migration state
+  import_playbook: post_migration-playbook.yml

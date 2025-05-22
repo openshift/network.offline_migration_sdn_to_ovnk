@@ -1,8 +1,11 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # Collections must specify a minimum required ansible version to upload
 # to galaxy
 # requires_ansible: '>=2.9.10'
+# network.offline_migration_sdn_to_ovnk/meta/runtime.yml
+requires_ansible: '>=2.15.0,>=2.16.0,>=2.17.0,>=2.18.0'
+
 
 # Content that Ansible needs to load from another location or that has
 # been deprecated/removed

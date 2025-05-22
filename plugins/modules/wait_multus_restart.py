@@ -1,4 +1,33 @@
-#!/usr/bin/python
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: wait_multus_restart
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 import time
@@ -27,7 +56,7 @@ def wait_for_multus_pods(module, timeout):
                 if "successfully rolled out" in output:
                     return True
         except Exception as e:
-            print(f"Retrying due to error: {str(e)}")
+            module.log(f"Retrying due to error: {str(e)}")
         time.sleep(interval)
 
     # Timeout reached

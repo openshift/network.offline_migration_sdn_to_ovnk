@@ -1,4 +1,33 @@
-#!/usr/bin/python
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: verify_machine_config
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 import re
@@ -21,11 +50,15 @@ def get_machine_config_status(module, timeout):
     while time.time() - start_time < timeout:
         output, error = run_command(module, "oc describe node | grep -E 'hostname|machineconfig'")
         if not error:
-            nodes = re.findall(
-                r"kubernetes\.io/hostname=(?P<hostname>.+)\n.*currentConfig: (?P<currentConfig>.+)\n.*desiredConfig: (?P<desiredConfig>.+)\n.*state: (?P<state>.+)",
-                output,
-                re.MULTILINE,
+            pattern = (
+                r"kubernetes\.io/hostname=(?P<hostname>.+)\n"
+                r".*currentConfig: (?P<currentConfig>.+)\n"
+                r".*desiredConfig: (?P<desiredConfig>.+)\n"
+                r".*state: (?P<state>.+)"
             )
+
+            nodes = re.findall(pattern, output, re.MULTILINE)
+
         time.sleep(10)  # Check every 10 seconds
     return nodes
 
@@ -67,13 +100,9 @@ def main():
             if node["state"] != "Done":
                 issues.append(f"Node {node['hostname']} state is {node['state']}, not Done.")
             if node["currentConfig"] != node["desiredConfig"]:
-                issues.append(
-                    f"Node {node['hostname']} currentConfig ({node['currentConfig']}) does not match desiredConfig ({node['desiredConfig']})."
-                )
+                issues.append(f"Node {node['hostname']} currentConfig ({node['currentConfig']}) does not match desiredConfig ({node['desiredConfig']}).")
             if not verify_machine_config(module, node["currentConfig"], network_type):
-                issues.append(
-                    f"Node {node['hostname']} configuration {node['currentConfig']} does not contain expected ExecStart."
-                )
+                issues.append(f"Node {node['hostname']} configuration {node['currentConfig']} does not contain expected ExecStart.")
         if issues:
             module.fail_json(msg="Issues detected with machine configuration.", issues=issues)
 

@@ -1,4 +1,45 @@
-#!/usr/bin/python
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: check_network_migration
+short_description: Check if migration of cni was set to desired one i.e OpenShiftSDN or OVNKubernetes.
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Check if migration of cni was set to desired one i.e OpenShiftSDN or OVNKubernetes.
+options:
+  expected_network_type:
+    description: Checks for desired CNI set.
+    required: true
+    type: str
+  max_retries:
+    description: Retries for oc command.
+    type: int
+    required: false
+    default: 3
+  delay:
+    description: Delay between retries for oc command
+    type: int
+    required: false
+    default: 3
+"""
+EXAMPLES = r"""
+- name: Check network migration status
+  check_network_migration:
+    expected_network_type: "{{ network_type }}"
+    max_retries: "{{ max_retries }}"
+    delay: "{{ retry_delay }}"
+  register: network_migration_result
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 import json
@@ -45,15 +86,10 @@ def main():
         network_type = network_config.get("status", {}).get("migration", {}).get("networkType", "")
 
         if network_type == module.params["expected_network_type"]:
-            module.exit_json(
-                changed=False,
-                msg=f"✅ Network migration type is correctly set to '{network_type}'.",
-                network_type=network_type
-            )
+            module.exit_json(changed=False, msg=f"✅ Network migration type is correctly set to '{network_type}'.", network_type=network_type)
         else:
             module.fail_json(
-                msg=f"❌ Network migration type is '{network_type}', expected '{module.params['expected_network_type']}'.",
-                network_type=network_type
+                msg=f"❌ Network migration type is '{network_type}', expected '{module.params['expected_network_type']}'.", network_type=network_type
             )
 
     except json.JSONDecodeError:

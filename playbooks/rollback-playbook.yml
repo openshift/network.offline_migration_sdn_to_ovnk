@@ -2,29 +2,19 @@
 - name: Rollback
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   roles:
-    - role: rollback
+    - role: network.offline_migration_sdn_to_ovnk.rollback
       vars:
-        clean_migration_timeout: 120
-        change_migration_timeout: 120
-        network_type: OpenShiftSDN
-        mco_update_timeout: 300s
-        mcp_completion_timeout: 18000 # Timeout in seconds
-        sdn_co_timeout: 120 # Timeout in seconds
-        sdn_multus_timeout: 300 # Timeout in seconds for waiting for Multus pods
-        verify_machine_config_timeout: 300
-        disable_auto_migration: false # true enables disable_automatic_migration. You will need to set egress_ip, egress_firewall and multicast as follows:
-        #egress_ip: false
-        #egress_firewall: false
-        #multicast: false
-        configure_network_type: openshiftSDN
-        #mtu: 1400
-        #vxlanPort: 4790
-        checks:
-          - "oc wait co --all --for='condition=Available=True' --timeout=60s"
-          - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
-          - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
-          - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
-          - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
+        rollback_clean_migration_timeout: 120
+        rollback_change_migration_timeout: 120
+        rollback_network_type: OpenShiftSDN
+        rollback_sdn_co_timeout: 120 # Timeout in seconds
+        rollback_sdn_multus_timeout: 300 # Timeout in seconds for waiting for Multus pods
+        rollback_disable_auto_migration: false # true enables disable_automatic_migration.
+        # You will need to set rollback_egress_ip, rollback_egress_firewall and rollback_multicast as follows:
+        # rollback_egress_ip: false
+        # rollback_egress_firewall: false
+        # rollback_multicast: false
+        rollback_configure_network_type: openshiftSDN
+        # rollback_mtu: 1400
+        # rollback_vxlanPort: 4790

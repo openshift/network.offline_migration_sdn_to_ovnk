@@ -1,3 +1,38 @@
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+DOCUMENTATION = r"""
+---
+module: check_cidr_ranges
+short_description: Checks for conflicting range with the provided list of range.
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Checks for conflicting range with the provided list of range.
+options:
+  conflicting_ranges:
+    description: List of range to compare pod, service and machine CIDR for conflicts.
+    required: true
+    type: list
+    elements: str
+  timeout:
+    description: Desired timeout
+    type: int
+    required: false
+    default: 120
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import ipaddress
 import json

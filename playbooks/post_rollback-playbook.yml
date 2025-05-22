@@ -2,20 +2,18 @@
 - name: Post Rollback
   hosts: localhost
   gather_facts: false
-  collections:
-    - network.offline_migration_sdn_to_ovnk
   roles:
-    - role: post_rollback
+    - role: network.offline_migration_sdn_to_ovnk.post_rollback
       vars:
-        checks:
+        post_rollback_checks:
           - "oc wait co --all --for='condition=Available=True' --timeout=60s"
           - "oc wait co --all --for='condition=Progressing=False' --timeout=60s"
           - "oc wait co --all --for='condition=Degraded=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=UPDATED=True' --timeout=60s"
           - "oc wait mcp --all --for='condition=UPDATING=False' --timeout=60s"
           - "oc wait mcp --all --for='condition=DEGRADED=False' --timeout=60s"
-        network_provider_config: ovnKubernetesConfig
-        namespace: openshift-ovn-kubernetes
-        expected_network_type: OpenShiftSDN
-        verify_machine_config_timeout: 300
-        clean_migration_timeout: 120
+        post_rollback_network_provider_config: ovnKubernetesConfig
+        post_rollback_namespace: openshift-ovn-kubernetes
+        post_rollback_expected_network_type: OpenShiftSDN
+        post_rollback_verify_machine_config_timeout: 300
+        post_rollback_clean_migration_timeout: 120

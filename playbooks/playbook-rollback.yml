@@ -1,5 +1,12 @@
 ---
-- import_playbook: prechecks-playbook.yml
-- import_playbook: rollback-playbook.yml
-- import_playbook: reboot-playbook.yml
-- import_playbook: post_rollback-playbook.yml
+- name: Run pre-rollback checks
+  import_playbook: prechecks-playbook.yml
+
+- name: Execute rollback
+  import_playbook: rollback-playbook.yml
+
+- name: Reboot cluster nodes
+  import_playbook: reboot-playbook.yml
+
+- name: Verify post-rollback state
+  import_playbook: post_rollback-playbook.yml

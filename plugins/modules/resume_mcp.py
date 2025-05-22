@@ -1,3 +1,34 @@
+# Copyright (c) 2025, Red Hat
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+DOCUMENTATION = r"""
+---
+module: resume_mcp
+short_description: Change the default network type (SDN ↔ OVN).
+version_added: "1.0.0"
+author: Miheer Salunke (@miheer)
+description:
+  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
+    and C(OVNKubernetes) by patching the Network.operator CR.
+options:
+  new_type:
+    description: Desired network type.
+    choices: [OpenShiftSDN, OVNKubernetes]
+    required: true
+"""
+EXAMPLES = r"""
+- name: Migrate to OVN-K
+  network.offline_migration_sdn_to_ovnk.change_network_type:
+    new_type: OVNKubernetes
+"""
+RETURN = r"""
+changed:
+  description: Whether the CR was modified.
+  type: bool
+  returned: always
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 import time
 import json
@@ -26,14 +57,8 @@ def main():
 
     # Patch commands for MCPs
     patch = {"spec": {"paused": False}}
-    patch_master_cmd = [
-        "oc", "patch", "MachineConfigPool", "master", "--type=merge", "--patch",
-        json.dumps(patch)
-    ]
-    patch_worker_cmd = [
-        "oc", "patch", "MachineConfigPool", "worker", "--type=merge", "--patch",
-        json.dumps(patch)
-    ]
+    patch_master_cmd = ["oc", "patch", "MachineConfigPool", "master", "--type=merge", "--patch", json.dumps(patch)]
+    patch_worker_cmd = ["oc", "patch", "MachineConfigPool", "worker", "--type=merge", "--patch", json.dumps(patch)]
 
     end_time = time.time() + timeout
 
