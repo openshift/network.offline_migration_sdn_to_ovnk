@@ -5,22 +5,33 @@
 DOCUMENTATION = r"""
 ---
 module: delete_primary_nncp
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: If nncp is configured on primary interface then deletes it.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - If nncp is configured on primary interface then deletes it.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  interface_name:
+    description: Provide the primary interface name.
     required: true
+    type: str
+  retries:
+    description: Number of retries for the oc command.
+    type: int
+    default: 3
+  delay:
+    description: Delay between oc retries.
+    type: int
+    default: 3
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Delete NNCP for primary interface if exists
+  network.offline_migration_sdn_to_ovnk.delete_primary_nncp:
+    interface_name: "{{ migration_interface_name }}"
+  when:
+    - interface_name is defined
+    - interface_name | length > 0
+    - crd_check
 """
 RETURN = r"""
 changed:

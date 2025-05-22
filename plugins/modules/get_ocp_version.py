@@ -5,22 +5,28 @@
 DOCUMENTATION = r"""
 ---
 module: get_ocp_version
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Fetches the OpenShift version.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Fetches the OpenShift version.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  retries:
+    description: Number of retries for oc command in case of failure.
+    type: int
+    default: 3
+  delay:
+    description: Time in seconds to pass delay between retries.
+    default: 5
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Get OpenShift version using custom module
+  network.offline_migration_sdn_to_ovnk.get_ocp_version:
+    retries: 3
+    delay: 5
+  register: openshift_version_result
+  failed_when: openshift_version_result.version is not defined
 """
 RETURN = r"""
 changed:

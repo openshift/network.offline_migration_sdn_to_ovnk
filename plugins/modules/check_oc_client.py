@@ -11,16 +11,21 @@ author: Miheer Salunke (@miheer)
 description:
   - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
     and C(OVNKubernetes) by patching the Network.operator CR.
-options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check if oc client is installed and binary exists
+  network.offline_migration_sdn_to_ovnk.check_oc_client:
+  register: oc_check_result
+
+- name: Display oc client version
+  ansible.builtin.debug:
+    msg: "OpenShift client version: {{ oc_check_result.version }}"
+  when: oc_check_result.version is defined
+
+- name: Fail if oc binary or client is not installed or functional
+  ansible.builtin.fail:
+    msg: "{{ oc_check_result.msg }}"
+  when: not oc_check_result.version
 """
 RETURN = r"""
 changed:

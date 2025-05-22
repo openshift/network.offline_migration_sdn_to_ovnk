@@ -4,23 +4,63 @@
 
 DOCUMENTATION = r"""
 ---
-module: change_network_settings
-short_description: Change the default network type (SDN ↔ OVN).
+module: configure_network_settings
+short_description: Configure network settings for migration or rollback.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Configure network settings for migration or rollback.
+    For migration you can set mtu or geneve_port or ipv4_subnet or all.
+    For rollback you can set vxlanPort or mtu or all.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  configure_network_type:
+    description: Provides for which CNI we need to configure the network settings.
+    choices: [ovnKubernetes, openshiftSDN]
     required: true
+    type: str
+  mtu:
+    description: Provide the MTU value.
+    type: int
+    required: false
+  geneve_port:
+    description: Provide the geneve port.
+    type: int
+    required: false
+  ipv4_subnet:
+    description: Provide the ipv4_subnet.
+    type: str
+    required: false
+  retries:
+    description: Defined the number of retries for oc command incase of a failure.
+    type: int
+    default: 3
+  delay:
+    description: Defines the delay between retries.
+    type: int
+    default: 5
+  vxlanPort:
+    description: Provide the vxlanPort
+    type: int
+    required: false
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Customize network settings if parameters are provided
+  network.offline_migration_sdn_to_ovnk.configure_network_settings:
+    configure_network_type: "{{ rollback_configure_network_type }}"
+    mtu: "{{ rollback_mtu | default(omit) }}"
+    vxlanPort: "{{ rollback_vxlanPort | default(omit) }}"
+    retries: 3
+    delay: 5
+  register: patch_result
+- name: Customize network settings if parameters are provided
+  network.offline_migration_sdn_to_ovnk.configure_network_settings:
+    configure_network_type: "{{ migration_configure_network_type }}"
+    mtu: "{{ migration_mtu | default(omit) }}"
+    geneve_port: "{{ migration_geneve_port | default(omit) }}"
+    ipv4_subnet: "{{ migration_ipv4_subnet | default(omit) }}"
+    retries: 3
+    delay: 5
+  register: patch_result
 """
 RETURN = r"""
 changed:

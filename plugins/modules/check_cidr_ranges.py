@@ -22,9 +22,10 @@ options:
     default: 120
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check for conflicting CIDR ranges
+  network.offline_migration_sdn_to_ovnk.check_cidr_ranges:
+    conflicting_ranges: "{{ migration_conflicting_cidr_ranges }}"
+  register: result
 """
 RETURN = r"""
 changed:

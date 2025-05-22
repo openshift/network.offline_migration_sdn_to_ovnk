@@ -5,22 +5,27 @@
 DOCUMENTATION = r"""
 ---
 module: trigger_network_type
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Patches the networkType in the Network.config.openshift.io.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Patches the networkType in the Network.config.openshift.io.
 options:
-  new_type:
+  network_type:
     description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
     required: true
+    type: str
+  timeout:
+    description: Timeout in seconds.
+    required: false
+    default: 60
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Trigger OpenshiftSDN deployment
+  network.offline_migration_sdn_to_ovnk.trigger_network_type:
+    network_type: "{{ rollback_network_type }}"
+    timeout: "{{ rollback_sdn_co_timeout }}"
 """
 RETURN = r"""
 changed:

@@ -5,22 +5,39 @@
 DOCUMENTATION = r"""
 ---
 module: disable_automatic_migration
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Disables auto migration of egress_ip, egress_firewall and multicast.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  -  Disables auto migration of egress_ip, egress_firewall and multicast to their equivalents in CNI
+    while doing rollback or migration.
 options:
-  new_type:
+  network_type:
     description: Desired network type.
     choices: [OpenShiftSDN, OVNKubernetes]
     required: true
+    type: str
+  egress_ip:
+    description: To enable or disable auto migration of egress_ip
+    type: raw
+    default: null
+  egress_firewall:
+    description: To enable or disable auto migration of egress_firewall
+    type: raw
+    default: null
+  multicast:
+    description: To enable or disable auto migration of multicase
+    type: raw
+    default: null
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Disable OpenShift SDN Migration Features
+  network.offline_migration_sdn_to_ovnk.disable_automatic_migration:
+    network_type: "{{ rollback_network_type }}"
+    egress_ip: "{{ rollback_egress_ip | default(omit) }}"
+    egress_firewall: "{{ rollback_egress_firewall | default(omit) }}"
+    multicast: "{{ rollback_multicast | default(omit) }}"
+  register: patch_result
 """
 RETURN = r"""
 changed:
@@ -85,9 +102,9 @@ def main():
     module = AnsibleModule(
         argument_spec={
             "network_type": {"type": "str", "choices": ["OVNKubernetes", "OpenShiftSDN"], "required": True},  # Takes OpenShiftSDN or OVNKubernetes
-            "egress_ip": {"type": "bool", "default": None},
-            "egress_firewall": {"type": "bool", "default": None},
-            "multicast": {"type": "bool", "default": None},
+            "egress_ip": {"type": "raw", "default": None},
+            "egress_firewall": {"type": "raw", "default": None},
+            "multicast": {"type": "raw", "default": None},
         },
         supports_check_mode=True,
     )
