@@ -5,22 +5,31 @@
 DOCUMENTATION = r"""
 ---
 module: manage_network_config
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: This module clears ups the old network config and the namespace for the old CNI.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - This module clears ups the old network config and the namespace for the old CNI.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  network_provider_config:
+    description: Name of the network provider config openshiftSDNConfig or ovnKubernetesConfig
     required: true
+    type: str
+  namespace:
+    description: Namespace in which the CNI configuration resides.
+    type: str
+    required: false
+  timeout:
+    description: Desired timeout in seconds.
+    type: int
+    default: 120
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Remove network configuration and namespace
+  network.offline_migration_sdn_to_ovnk.manage_network_config:
+    network_provider_config: "{{ post_migration_network_provider_config }}"
+    namespace: "{{ post_migration_namespace }}"
+  register: result
 """
 RETURN = r"""
 changed:

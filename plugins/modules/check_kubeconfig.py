@@ -13,7 +13,7 @@ description:
 """
 EXAMPLES = r"""
 - name: Check if KUBECONFIG is set and file exists
-  check_kubeconfig:
+  network.offline_migration_sdn_to_ovnk.check_kubeconfig:
   register: kubeconfig_result
 """
 RETURN = r"""

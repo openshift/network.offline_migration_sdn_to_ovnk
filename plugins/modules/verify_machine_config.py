@@ -5,22 +5,26 @@
 DOCUMENTATION = r"""
 ---
 module: verify_machine_config
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Verifies the machine configuration status after we trigger mco update using module change_network_type.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Verifies the machine configuration status after we trigger mco update using module change_network_type.
 options:
-  new_type:
+  network_type:
     description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
     required: true
+    type: str
+  timeout:
+    description: Timeout in seconds.
+    type: int
+    default: 300
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Verify machine configuration status on nodes
+  network.offline_migration_sdn_to_ovnk.verify_machine_config:
+    timeout: "{{ post_rollback_verify_machine_config_timeout }}"
+    network_type: "OpenShiftSDN"
 """
 RETURN = r"""
 changed:

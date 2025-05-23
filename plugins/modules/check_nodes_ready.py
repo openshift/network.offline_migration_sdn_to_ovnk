@@ -5,22 +5,29 @@
 DOCUMENTATION = r"""
 ---
 module: check_nodes_ready
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Check if all cluster nodes are in Ready state.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Check if all cluster nodes are in Ready state.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  timeout:
+    description: Timeout in seconds.
+    type: int
+    default: 120
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check if all cluster nodes are in Ready state
+  network.offline_migration_sdn_to_ovnk.check_nodes_ready:
+  register: node_status
+
+- name: Notify user about NotReady nodes
+  ansible.builtin.debug:
+    msg: >
+      The following nodes are not in the Ready state:  {{ node_status.not_ready_nodes | map(attribute='name') | join(', ') }}.
+      Please investigate machine config daemon pod logs.
+
+  when: node_status.not_ready_nodes | length > 0
 """
 RETURN = r"""
 changed:

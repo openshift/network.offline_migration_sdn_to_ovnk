@@ -4,23 +4,27 @@
 
 DOCUMENTATION = r"""
 ---
-module: change_network_provider
-short_description: Change the default network type (SDN ↔ OVN).
+module: check_network_provider
+short_description: Check if the CNI network provider is expected one.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Check if the CNI network provider is expected one.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  expected_network_type:
+    description: Check if the CNI network provider is expected one.
+    type: str
     required: true
+  timeout:
+    description: Sets desired timeout
+    type: int
+    default: 120
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check the CNI network provider
+  network.offline_migration_sdn_to_ovnk.check_network_provider:
+    expected_network_type: "{{ post_migration_expected_network_type }}"
+  register: result
 """
 RETURN = r"""
 changed:

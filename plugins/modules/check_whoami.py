@@ -5,22 +5,26 @@
 DOCUMENTATION = r"""
 ---
 module: check_whoami
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Checks if the user can perform all actions (indicating cluster-admin rights).
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
-options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  - Checks if the user can perform all actions (indicating cluster-admin rights).
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check if the current user is 'system:admin' or a user with cluster admin rights using custom module
+  network.offline_migration_sdn_to_ovnk.check_whoami:
+  register: oc_whoami_result
+
+- name: Show result of oc whoami check
+  ansible.builtin.debug:
+    msg: "The output of `oc whoami`: {{ oc_whoami_result.message }}"
+  when: not oc_whoami_result.failed
+
+- name: Fail if `oc whoami` is not 'system:admin' or does not have cluster admin rights.
+  ansible.builtin.fail:
+    msg: "{{ oc_whoami_result.msg }}"
+  when: oc_whoami_result.failed
 """
 RETURN = r"""
 changed:

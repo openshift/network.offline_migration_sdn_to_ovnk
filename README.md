@@ -108,14 +108,14 @@ of `migration_`
 - Customize network features:
   - In `migration-playbook.yml` you can set the following fields with custom values:
 ```shell
-        mtu: 1400
-        geneve_port: 6081
-        ipv4_subnet: "100.64.0.0/16"
+        migration_mtu: 1400
+        migration_geneve_port: 6081
+        migration_ipv4_subnet: "100.64.0.0/16"
 ```
   - In the rollback-playbook.yml you can set the following fields with custom values:
 ```shell
-        mtu: 1400
-        vxlanPort: 4790
+        rollback_mtu: 1400
+        rollback_vxlanPort: 4790
 ```
 
 If you are setting under rollback playbook you need to add prefix `rollback_` to the mentioned vars above instead

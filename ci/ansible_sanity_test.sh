@@ -49,8 +49,7 @@ ansible-galaxy collection install --force "./${TARBALL}" | tee -a "$LOGFILE"
 log "🔍  Running ansible-test sanity …"
 cd "$COLL_DIR"
 ansible-test sanity \
-  --python 3.12 \
-  --skip-test validate-modules  | tee -a "$LOGFILE"
+  --python 3.12 | tee -a "$LOGFILE"
 rc=${PIPESTATUS[0]}
 if [[ $rc -ne 0 ]]; then
   log "❌ ansible-test sanity failed with exit code $rc"

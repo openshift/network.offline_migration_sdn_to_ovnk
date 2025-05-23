@@ -5,22 +5,22 @@
 DOCUMENTATION = r"""
 ---
 module: wait_for_mco
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Checks if mcp's have started UPDATING.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  -  Checks if mcp's have started UPDATING.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  timeout:
+    description: Timeout in seconds.
     required: true
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Wait until MCO starts applying new machine config to nodes
+  network.offline_migration_sdn_to_ovnk.wait_for_mco:
+    timeout: "{{ migration_mco_timeout }}"
+  register: mco_status
 """
 RETURN = r"""
 changed:

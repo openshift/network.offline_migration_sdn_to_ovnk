@@ -5,22 +5,22 @@
 DOCUMENTATION = r"""
 ---
 module: wait_multus_restart
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Checks if the multus pods are restarted successfully.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Checks if the multus pods are restarted successfully.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  timeout:
+    description: Desired timeout in seconds.
+    required: false
+    default: 300
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Wait for Multus pods to restart
+  network.offline_migration_sdn_to_ovnk.wait_multus_restart:
+    timeout: "{{ migration_ovn_multus_timeout }}"
 """
 RETURN = r"""
 changed:

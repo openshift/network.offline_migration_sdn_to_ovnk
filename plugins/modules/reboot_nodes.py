@@ -5,22 +5,52 @@
 DOCUMENTATION = r"""
 ---
 module: reboot_nodes
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Reboot Nodes.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Reboot nodes.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  role:
+    description: Selects a node with a role.
+    choices: [master, worker]
     required: true
+    type: str
+  namespace:
+    description: Provides namespace for the machine config operator
+    type: str
+    required: true
+  daemonset_label:
+    description: Label for machine config daemon
+    type: str
+    required: true
+  delay:
+    description: Delay to add sleep.
+    type: int
+    default: 1
+  retries:
+    description: Number of retries for oc command incase of failure.
+    type: int
+    default: 3
+  retry_delay:
+    description: Delay between retries.
+    type: int
+    default: 3
+  timeout:
+    description: Desired timeout
+    type: int
+    default: 1800
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Reboot master nodes
+  network.offline_migration_sdn_to_ovnk.reboot_nodes:
+    role: "master"
+    namespace: "openshift-machine-config-operator"
+    daemonset_label: "machine-config-daemon"
+    delay: 1
+    retries: 5
+    retry_delay: 3
+    timeout: 1800
 """
 RETURN = r"""
 changed:
