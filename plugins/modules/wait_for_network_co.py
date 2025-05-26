@@ -5,22 +5,22 @@
 DOCUMENTATION = r"""
 ---
 module: wait_for_network_co
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Wait until the Network Cluster Operator is in PROGRESSING=True state
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Wait until the Network Cluster Operator is in PROGRESSING=True state
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  timeout:
+    description: Timeout in seconds.
     required: true
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Wait until the Network Cluster Operator is in PROGRESSING=True state
+  network.offline_migration_sdn_to_ovnk.wait_for_network_co:
+    timeout: "{{ migration_ovn_co_timeout }}"
+  register: network_co_status
 """
 RETURN = r"""
 changed:

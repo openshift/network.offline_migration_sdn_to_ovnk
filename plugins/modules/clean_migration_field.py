@@ -5,22 +5,21 @@
 DOCUMENTATION = r"""
 ---
 module: clean_migration_field
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Patch Network.operator.openshift.io and wait for migration field to clear.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Patch Network.operator.openshift.io and wait for migration field to clear.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  timeout:
+    description: Timeout in seconds.
+    default: 120
+    type: int
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Patch Network.operator.openshift.io and wait for migration field to clear
+  network.offline_migration_sdn_to_ovnk.clean_migration_field:
+    timeout: "{{ post_migration_clean_migration_timeout }}"
 """
 RETURN = r"""
 changed:

@@ -5,22 +5,31 @@
 DOCUMENTATION = r"""
 ---
 module: patch_mcp_paused
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Patch the machine config pool to pause or unpause.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Patch the machine config pool to pause or unpause.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  pool_name:
+    description: Name of the machine config pool to pause.
     required: true
+    type: str
+  paused:
+    description: Define to whether pause or unpause by providing a bool value true or false.
+    required: true
+    type: bool
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Pause updates for master MachineConfigPool
+  network.offline_migration_sdn_to_ovnk.patch_mcp_paused:
+    pool_name: "master"
+    paused: true
+
+- name: Pause updates for worker MachineConfigPool
+  network.offline_migration_sdn_to_ovnk.patch_mcp_paused:
+    pool_name: "worker"
+    paused: true
 """
 RETURN = r"""
 changed:

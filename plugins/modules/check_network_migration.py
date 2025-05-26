@@ -28,7 +28,7 @@ options:
 """
 EXAMPLES = r"""
 - name: Check network migration status
-  check_network_migration:
+  network.offline_migration_sdn_to_ovnk.check_network_migration:
     expected_network_type: "{{ network_type }}"
     max_retries: "{{ max_retries }}"
     delay: "{{ retry_delay }}"

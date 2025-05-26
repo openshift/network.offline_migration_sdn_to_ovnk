@@ -5,22 +5,41 @@
 DOCUMENTATION = r"""
 ---
 module: verify_cluster_operators_health
-short_description: Change the default network type (SDN ↔ OVN).
+short_description: Verify if all cluster operators are healthy.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Verify if all cluster operators are healthy.
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
+  max_timeout:
+    description: Max timeout for retrying the status of cluster operators.
+    type: int
+    required: false
+    default: 2700
+  pause_between_checks:
+    description: Delay between the oc command checks for cluster operator availability.
+    type: int
+    required: false
+    default: 30
+  required_success_count:
+    description: Number of times to execute the loop for the checking the availability of operators.
+    type: int
+    required: false
+    default: 3
+  checks:
+    description: List of oc commands to check the cluster operator availability.
     required: true
+    type: list
+    elements: str
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check all cluster operators back to normal
+  network.offline_migration_sdn_to_ovnk.verify_cluster_operators_health:
+    max_timeout: 2700
+    pause_between_checks: 30
+    required_success_count: 3
+    checks: "{{ post_rollback_checks }}"
+  register: result
 """
 RETURN = r"""
 changed:
@@ -59,7 +78,7 @@ def main():
             max_timeout=dict(type="int", required=False, default=2700),  # ⏳ Default timeout
             pause_between_checks=dict(type="int", required=False, default=30),
             required_success_count=dict(type="int", required=False, default=3),
-            checks=dict(type="list", required=True),
+            checks=dict(type="list", elements="str", required=True),
         )
     )
 

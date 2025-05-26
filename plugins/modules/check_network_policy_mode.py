@@ -4,23 +4,23 @@
 
 DOCUMENTATION = r"""
 ---
-module: change_network_policy_mode
-short_description: Change the default network type (SDN ↔ OVN).
+module: check_network_policy_mode
+short_description: Checks if NetworkPolicy isolation mode has been set.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Switches the cluster DefaultNetwork between C(OpenShiftSDN)
-    and C(OVNKubernetes) by patching the Network.operator CR.
+  - Checks if NetworkPolicy isolation mode has been set
 options:
-  new_type:
-    description: Desired network type.
-    choices: [OpenShiftSDN, OVNKubernetes]
-    required: true
+  timeout:
+    description: Desired timeout
+    type: int
+    required: false
+    default: 120
 """
 EXAMPLES = r"""
-- name: Migrate to OVN-K
-  network.offline_migration_sdn_to_ovnk.change_network_type:
-    new_type: OVNKubernetes
+- name: Check if the cluster is configured with NetworkPolicy isolation mode
+  network.offline_migration_sdn_to_ovnk.check_network_policy_mode:
+  register: result
 """
 RETURN = r"""
 changed:
