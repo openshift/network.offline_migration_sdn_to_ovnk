@@ -51,9 +51,14 @@
   changed_when: false
   ignore_errors: true
 
+- name: Set interface_name fact
+  ansible.builtin.set_fact:
+    interface_name: "{{ migration_interface_name }}"
+  when: migration_interface_name is defined
+
 - name: Delete NNCP for primary interface if exists
   network.offline_migration_sdn_to_ovnk.delete_primary_nncp:
-    interface_name: "{{ migration_interface_name }}"
+    interface_name: "{{ interface_name }}"
   when:
     - interface_name is defined
     - interface_name | length > 0
@@ -113,6 +118,7 @@
     - name: Display Patch Result
       ansible.builtin.debug:
         var: patch_result
+
 - name: Customize network settings if parameters are provided
   network.offline_migration_sdn_to_ovnk.configure_network_settings:
     configure_network_type: "{{ migration_configure_network_type }}"
