@@ -1,0 +1,81 @@
+---
+ancestor:
+releases:
+  1.0.0:
+    modules:
+      - description: "Change the default network type (SDN ↔ OVN)."
+        name: change_network_type
+        namespace: ""
+      - description: Checks for conflicting range with the provided list of range.
+        name: check_cidr_ranges
+        namespace: ""
+      - description: Checks existence of KUBECONFIG file.
+        name: check_kubeconfig
+        namespace: ""
+      - description: Check if migration of cni was set to desired one i.e OpenShiftSDN or OVNKubernetes.
+        name: check_network_migration
+        namespace: ""
+      - description: Checks if NetworkPolicy isolation mode has been set.
+        name: check_network_policy_mode
+        namespace: ""
+      - description: Check if the CNI network provider is expected one.
+        name: check_network_provider
+        namespace: ""
+      - description: Check if all cluster nodes are in Ready state.
+        name: check_nodes_ready
+        namespace: ""
+      - description: "Change the default network type (SDN ↔ OVN)."
+        name: check_oc_client
+        namespace: ""
+      - description: Checks if the user can perform all actions (indicating cluster-admin rights).
+        name: check_whoami
+        namespace: ""
+      - description: Patch Network.operator.openshift.io and wait for migration field to clear.
+        name: clean_migration_field
+        namespace: ""
+      - description: Configure network settings for migration or rollback.
+        name: configure_network_settings
+        namespace: ""
+      - description: If nncp is configured on primary interface then deletes it.
+        name: delete_primary_nncp
+        namespace: ""
+      - description: Disables auto migration of egress_ip, egress_firewall and multicast.
+        name: disable_automatic_migration
+        namespace: ""
+      - description: Fetches the OpenShift version.
+        name: get_ocp_version
+        namespace: ""
+      - description: This module clears ups the old network config and the namespace for the old CNI.
+        name: manage_network_config
+        namespace: ""
+      - description: Patch the machine config pool to pause or unpause.
+        name: patch_mcp_paused
+        namespace: ""
+      - description: Reboot Nodes.
+        name: reboot_nodes
+        namespace: ""
+      - description: Unpauses the mcp after reboot.
+        name: resume_mcp
+        namespace: ""
+      - description: Patches the networkType in the Network.config.openshift.io.
+        name: trigger_network_type
+        namespace: ""
+      - description: Verify if all cluster operators are healthy.
+        name: verify_cluster_operators_health
+        namespace: ""
+      - description: Verifies the machine configuration status after we trigger mco update using module change_network_type.
+        name: verify_machine_config
+        namespace: ""
+      - description: Checks if mcp's have started UPDATING.
+        name: wait_for_mco
+        namespace: ""
+      - description: Wait for MCO to finish its work after change_network_type triggers mco update.
+        name: wait_for_mco_completion
+        namespace: ""
+      - description: Wait until the Network Cluster Operator is in PROGRESSING=True state.
+        name: wait_for_network_co
+        namespace: ""
+      - description: Checks if the multus pods are restarted successfully.
+        name: wait_multus_restart
+        namespace: ""
+    release_date: "2025-06-03"
