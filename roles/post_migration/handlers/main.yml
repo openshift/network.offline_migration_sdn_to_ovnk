@@ -3,3 +3,7 @@
 - name: Display cluster operators status
   ansible.builtin.command: oc get co
   changed_when: false
+
+- name: Display cluster operators status
+  ansible.builtin.command: oc get co
+  changed_when: false
