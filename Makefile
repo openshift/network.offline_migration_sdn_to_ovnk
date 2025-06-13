@@ -29,5 +29,8 @@ test-integration-incluster:
 test-integration:
 	./ci/test-integration.sh
 
-
+.PHONY: publish
+publish:  ## Build the collection and publish it to Automation Hub
+	@echo "==> Publishing collection (requires AH_TOKEN)…"
+	bash hack/publish_collection.sh
 
