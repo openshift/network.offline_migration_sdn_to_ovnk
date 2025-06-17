@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: reboot_nodes
+  author: Miheer Salunke (@miheer)
+  description: Offline migration helper role to reboot master and worker nodes in the cluster.
+  license: Apache-2.0
+  min_ansible_version: 2.15.0

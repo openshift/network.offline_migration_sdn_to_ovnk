@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: prechecks
+  author: Miheer Salunke (@miheer)
+  description: Offline migration helper role to perform pre-checks in the cluster.
+  license: Apache-2.0
+  min_ansible_version: 2.15.0

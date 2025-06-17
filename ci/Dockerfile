@@ -28,6 +28,7 @@ RUN dnf install -y \
   && python3.12 -m pip install --no-cache-dir ansible-core==2.18.1 \
   && python3.12 -m pip install --no-cache-dir ansible-lint==25.4.0 \
   && python3.12 -m pip install --no-cache-dir  jmespath \
+  && python3.12 -m pip install --no-cache-dir galaxy-importer==0.4.31 \
   #&& dnf clean all \
   && rm -rf /var/cache/dnf
 
