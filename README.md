@@ -139,6 +139,11 @@ make lint
 make sanity
 ```
 
+- You must run galaxy import test after making any changes to the code.
+```shell
+make import
+```
+
 - To check how things work in CI:
 
 Assuming if you have access to registry.ci.openshift.org.
@@ -173,3 +178,51 @@ ANSIBLE_TEST_IMAGE=quay.io/<your reponame>/ansible-test-runner:1 ./ci/incluster_
   `test_incluster_sanity_lint.sh` respectively
 
 - If you don't have access to registry.ci.openshift.org then you can use Dockerfile.debug to build your image.
+
+### Build and Release
+
+Export the [Ansible Hub Token](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.1/html/getting_started_with_automation_hub/proc-create-api-token). 
+
+Make sure you have access to publish the namespace `network`.
+You need to go to this namespace link here -> https://console.redhat.com/ansible/automation-hub/namespaces/network/. 
+When you load this page you should be able to see a button on the top right of your screen that says 
+"upload collection". If you do not see that that means that the account that you are using isn't part
+of the RedHat group that is in charge of that namespace.
+
+Edit the galaxy.yml(repo root)
+Change the version field, e.g.:
+```yaml
+version: 1.0.1
+```
+
+Add a matching changelog fragment so ansible-test changelog stays
+green:
+```yaml
+changelog/fragment/1234.bugfix.yaml
+---
+- Bumped version to 1.0.1 to republish collection
+```
+
+Validating [changelog fragments](https://ansible.readthedocs.io/projects/antsibull-changelog/changelogs/#validating-changelog-fragments
+):
+If you want to do a basic syntax check of changelog fragments, you can run:
+```sh
+antsibull-changelog lint
+```
+
+Tag and push your release to github:
+```sh
+git push origin HEAD:refs/tags/v1.0.1
+``
+
+Rebuild the tarball:
+```sh
+make build
+```
+You will get network-offline_migration_sdn_to_ovnk-1.0.1.tar.gz.
+
+Publish:
+```sh
+export AH_TOKEN=xxxxx 
+make publish
+```
