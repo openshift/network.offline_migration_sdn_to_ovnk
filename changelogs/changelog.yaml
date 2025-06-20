@@ -79,3 +79,13 @@ releases:
         name: wait_multus_restart
         namespace: ""
     release_date: "2025-06-03"
+  1.0.1:
+    changes:
+      bugfixes:
+        - Fixes roles docxumentation.
+      minor_changes:
+        - Add `make import` target to Makefile.
+      release_summary: "Patch release 1.0.1 focusing adding CI tests for performing galaxy import and adds missing documentation for roles.\n"
+    fragments:
+      - 1.0.1-bugfixes.yml
+    release_date: "2025-06-20"

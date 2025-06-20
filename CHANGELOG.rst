@@ -4,6 +4,24 @@ Network.Offline\_Migration\_Sdn\_To\_Ovnk Release Notes
 
 .. contents:: Topics
 
+v1.0.1
+======
+
+Release Summary
+---------------
+
+Patch release 1.0.1 focusing adding CI tests for performing galaxy import and adds missing documentation for roles.
+
+Minor Changes
+-------------
+
+- Add `make import` target to Makefile.
+
+Bugfixes
+--------
+
+- Fixes roles docxumentation.
+
 v1.0.0
 ======
 
