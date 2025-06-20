@@ -189,31 +189,64 @@ When you load this page you should be able to see a button on the top right of y
 "upload collection". If you do not see that that means that the account that you are using isn't part
 of the RedHat group that is in charge of that namespace.
 
-Edit the galaxy.yml(repo root)
-Change the version field, e.g.:
-```yaml
-version: 1.0.1
+- Create the fragment:
+```bash
+mkdir -p changelogs/fragments
+cat > changelogs/fragments/1.0.1-bugfixes.yml <<'EOF'
+release_summary: |
+  Patch release focusing on idempotency and CI hygiene.
+
+bugfixes:
+  - Fix undefined variable `migration_interface_name` in the *migration* role (#78).
+  - Ensure `verify_cluster_operators_health` waits for operators to settle (#81).
+
+minor_changes:
+  - Add `make sanity` target to Makefile.
+EOF
 ```
 
-Add a matching changelog fragment so ansible-test changelog stays
-green:
-```yaml
-changelog/fragment/1234.bugfix.yaml
----
-- Bumped version to 1.0.1 to republish collection
-```
+Valid section keys are major_changes, minor_changes, bugfixes, breaking_changes, security_fixes, deprecated_features,
+removed_features, known_issues, plus the optional release_summary block. Reference: docs.ansible.com
 
 Validating [changelog fragments](https://ansible.readthedocs.io/projects/antsibull-changelog/changelogs/#validating-changelog-fragments
 ):
 If you want to do a basic syntax check of changelog fragments, you can run:
-```sh
+```bash
 antsibull-changelog lint
 ```
 
+or run:
+```bash
+antsibull-changelog lint changelogs/fragments/1.0.1-bugfixes.yml
+```
+
+- Bump galaxy.yml (and the VERSION line in the Makefile)
+```bash
+sed -i -e 's/^version: .*/version: 1.0.1/' galaxy.yml
+sed -i -e 's/^VERSION *= *.*/VERSION = 1.0.1/' Makefile
+```
+
+Generate the real changelog and finalize the release branch:
+
+When you are ready to publish:
+```bash
+antsibull-changelog release --version 1.0.1   # rewrites CHANGELOG.rst and changelogs/changelog.yaml
+```
+
+Tag and push:
+```bash
+ git add CHANGELOG.rst Makefile changelogs/changelog.yaml galaxy.yml
+ git commit -m "your message"
+ git push -f <your remote> <local branch>:<remote branch>
+```
+
+Create a PR.
+
+Once the code already is merged:
 Tag and push your release to github:
 ```sh
 git push origin HEAD:refs/tags/v1.0.1
-``
+````
 
 Rebuild the tarball:
 ```sh
