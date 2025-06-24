@@ -1,78 +1,32 @@
 ## Migration from OpenShiftSDN to OVNKubernetes and Rollback from OVNKubernetes to OpenShiftSDN
 
-### Note: This repository is under development and not recommended to use on production environment and is not supported by Red Hat.
+This repo hosts the `network.offline_migration_sdn_to_ovnk` Ansible Collection.
 
-### Pre-requisites
+## Description
 
-#### Ensure system is updated before installation
-- If you are on RHEL9:
-```shell
-yum clean all && yum update -y
-dnf -y upgrade --refresh && dnf clean all
+From OCP version 4.17, the CNI plugin `OpenShiftSDN` is deprecated. So, we recommend users to migrate from
+CNI plugin `OpenShiftSDN` to `OVNKubernetes`.
+This collection helps you migrate the CNI network plugin from `OpenShiftSDN` to `OVNKubernetes` and perform
+rollback from `OVNKubernetes` to `OpenShiftSDN`.
+
+## Requirements
+
+#### Install python, ansible-core, ansible-lint, jmespath, jq
+- Minimum of python 3.10, ansible-core 2.15 is recommended.
+
+## Installation
+Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
+
 ```
-
-#### Install necessary dependencies
-```shell
-dnf install -y \
-      glibc-langpack-en \
-      git \
-      make \
-      python3.12 \
-      python3.12-pip \
-      gcc \
-      jq  
-
-python3.12 -m pip install --no-cache-dir --upgrade pip \
-python3.12 -m pip install --no-cache-dir ansible-core==2.18.1 \
-python3.12 -m pip install --no-cache-dir ansible-lint==25.4.0 \
-python3.12 -m pip install --no-cache-dir  jmespath \
-rm -rf /var/cache/dnf
-```
-
-- Minimum of python 3.12, ansible-core 2.18.1 and ansible-lint 25.4.0 is recommended.
-
-#### Alternative way:
-
-- Python latest package installed from https://www.python.org/.
-  This has been tested with [installer](https://www.python.org/downloads/release/python-3131/)
-
-- After installation of python install ansible using the following command:
-  ```shell
-  python3 -m pip install --user ansible  # Make sure ansible version is 2.18.1
-  ```
-  Reference: [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#pip-install)
-
-- For running tests install the following:
-```shell
-  python3 -m pip install --user jmespath
-```
-
-- Make sure `jq` is installed in your system.
-
-- You can install the packages mentioned in section [Install necessary dependencies](#install-necessary-dependencies)
-  as per your requirements.
-
-### Using the playbooks:
-
-- Clone the repository as follows:
-```shell
-git clone git@github.com:openshift/network.offline_migration_sdn_to_ovnk.git
-```
-
-- Change to that directory:
-``` shell
-cd network.offline_migration_sdn_to_ovnk
-```
-
-- Install the ansible collection:
-```shell
-make install
+ansible-galaxy collection install network.offline_migration_sdn_to_ovnk
 ```
 
 -  Check if the collection is installed:
 ```shell
 ansible-galaxy collection list | grep network.offline_migration_sdn_to_ovnk 
 ```
+
+## Use Cases
 
 - To run the migration from OpenShiftSDN to OVNKubernetes
 ```shell
@@ -127,7 +81,7 @@ of `migration_`
 migration_interface_name: eth0
 ```
 
-### Testing
+## Testing
 
 - You must run lint tests after making any changes to the code.
 ```shell
@@ -178,6 +132,8 @@ ANSIBLE_TEST_IMAGE=quay.io/<your reponame>/ansible-test-runner:1 ./ci/incluster_
   `test_incluster_sanity_lint.sh` respectively
 
 - If you don't have access to registry.ci.openshift.org then you can use Dockerfile.debug to build your image.
+
+## Contributing
 
 ### Build and Release
 
@@ -246,7 +202,7 @@ Once the code already is merged:
 Tag and push your release to github:
 ```sh
 git push origin HEAD:refs/tags/v1.0.1
-````
+```
 
 Rebuild the tarball:
 ```sh
@@ -259,3 +215,19 @@ Publish:
 export AH_TOKEN=xxxxx 
 make publish
 ```
+
+## Support
+
+If you encounter issues or have questions, you can submit a support request through the following channels:
+ - Open a Support ticket with Red Hat
+ - GitHub Issues: Report bugs, request features, or ask questions by opening an issue in the [GitHub repository](https://github.com/openshift/network.offline_migration_sdn_to_ovnk).
+
+## Code of Conduct
+
+We follow the [Ansible Code of Conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html) in all our interactions within this project.
+
+If you encounter abusive behavior, please refer to the [policy violations](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html#policy-violations) section of the Code for information on how to raise a complaint.
+
+## License
+
+See LICENCE to see the full text.
