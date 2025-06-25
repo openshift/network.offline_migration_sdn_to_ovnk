@@ -89,3 +89,15 @@ releases:
     fragments:
       - 1.0.1-bugfixes.yml
     release_date: "2025-06-20"
+  1.0.2:
+    changes:
+      bugfixes:
+        - Adds CHANGE log files for releasing v1.0.2
+        - Adds min required version od ansible to 2.18
+        - Fix README as per per ansible statndards
+        - Ignore files and folders not needed during build
+        - Use Python version min 3.12
+      release_summary: "Patch release focusing on suggestions as per ansible partners.\n"
+    fragments:
+      - 1.0.2-bugfixes.yml
+    release_date: "2025-06-24"

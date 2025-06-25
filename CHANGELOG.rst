@@ -4,6 +4,23 @@ Network.Offline\_Migration\_Sdn\_To\_Ovnk Release Notes
 
 .. contents:: Topics
 
+v1.0.2
+======
+
+Release Summary
+---------------
+
+Patch release focusing on suggestions as per ansible partners.
+
+Bugfixes
+--------
+
+- Adds CHANGE log files for releasing v1.0.2
+- Adds min required version od ansible to 2.18
+- Fix README as per per ansible statndards
+- Ignore files and folders not needed during build
+- Use Python version min 3.12
+
 v1.0.1
 ======
 
