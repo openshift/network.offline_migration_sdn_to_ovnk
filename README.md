@@ -219,7 +219,6 @@ make publish
 ## Support
 
 If you encounter issues or have questions, you can submit a support request through the following channels:
- - Open a Support ticket with Red Hat
  - GitHub Issues: Report bugs, request features, or ask questions by opening an issue in the [GitHub repository](https://github.com/openshift/network.offline_migration_sdn_to_ovnk).
 
 ## Code of Conduct
