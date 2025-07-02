@@ -1,2 +1,3 @@
+---
 # .ansible-lint.yml  (YAML works with every ansible-lint ≥5.0)
 profile: production

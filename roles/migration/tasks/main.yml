@@ -155,6 +155,8 @@
   network.offline_migration_sdn_to_ovnk.trigger_network_type:
     network_type: "{{ migration_network_type }}"
     timeout: "{{ migration_ovn_co_timeout }}"
+    cidr: "{{ migration_cidr | default(omit) }}"
+    prefix: "{{ migration_prefix | default(omit) }}"
 
 - name: Wait until the Network Cluster Operator is in PROGRESSING=True state
   network.offline_migration_sdn_to_ovnk.wait_for_network_co:

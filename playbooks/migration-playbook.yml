@@ -36,3 +36,5 @@
         # migration_ipv4_subnet: "100.64.0.0/16"
         # Primary interface to check if nncp is installed on it.
         # migration_interface_name: eth0
+        # migration_cidr: "10.240.0.0/14"
+        # migration_prefix: 23
