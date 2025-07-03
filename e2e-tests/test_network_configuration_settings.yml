@@ -18,6 +18,8 @@
         mtu: 1400
         geneve_port: 6081
         ipv4_subnet: "192.168.1.0/24"
+        routing_via_host: true # True sets local gateway
+        ip_forwarding: Global
         retries: 3
         delay: 5
       register: test_result_valid_ovn
@@ -42,6 +44,8 @@
           - network_data.spec.defaultNetwork.ovnKubernetesConfig.mtu == 1400
           - network_data.spec.defaultNetwork.ovnKubernetesConfig.genevePort == 6081
           - network_data.spec.defaultNetwork.ovnKubernetesConfig.v4InternalSubnet == "192.168.1.0/24"
+          - network_data.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.ipForwarding == "Global"
+          - network_data.spec.defaultNetwork.ovnKubernetesConfig.gatewayConfig.routingViaHost == true
         fail_msg: "Network configuration does not match expected values!"
         success_msg: "Network configuration successfully updated!"
 
