@@ -1,0 +1,63 @@
+---
+- name: E2E ─ trigger_network_type module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # use a harmless dummy network that never overlaps with the reserved list
+    _test_cidr: 10.128.0.0/14
+    _test_prefix: 23
+    _forbidden_cidr: 100.64.10.0/24  # overlaps 100.64.0.0/16 and _must_ fail
+    _forbidden_prefix: 24
+
+  tasks:
+    ###################################################################
+    # 1. basic call ─ switch to OVNKubernetes without CIDR change
+    ###################################################################
+    - name: Trigger OVN-Kubernetes without altering clusterNetwork
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
+        network_type: OVNKubernetes
+        timeout: 30
+      register: basic
+
+    - name: Assert basic call reports changed
+      ansible.builtin.assert:
+        that:
+          - basic.changed
+          - "'Successfully triggered OVNKubernetes' in basic.msg"
+
+    ###################################################################
+    # 2. call with custom CIDR / prefix (positive case)
+    ###################################################################
+    - name: Trigger OVN-Kubernetes with new clusterNetwork block
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
+        network_type: OVNKubernetes
+        cidr: "{{ _test_cidr }}"
+        prefix: "{{ _test_prefix }}"
+        timeout: 30
+      register: new_net
+
+    - name: Assert CIDR change succeeded
+      ansible.builtin.assert:
+        that:
+          - new_net.changed
+          - "'Successfully triggered OVNKubernetes' in new_net.msg"
+
+    ###################################################################
+    # 3. forbidden CIDR must be rejected (negative case)
+    ###################################################################
+    - name: Attempt patch with a forbidden CIDR (should fail)
+      network.offline_migration_sdn_to_ovnk.trigger_network_type:
+        network_type: OVNKubernetes
+        cidr: "{{ _forbidden_cidr }}"
+        prefix: "{{ _forbidden_prefix }}"
+        timeout: 30
+      register: forbidden
+      failed_when: false  # allow play to continue so we can assert
+
+    - name: Assert module failed for forbidden CIDR overlap
+      ansible.builtin.assert:
+        that:
+          #- forbidden.failed | default(false)
+          - "'overlaps' in forbidden.msg"
