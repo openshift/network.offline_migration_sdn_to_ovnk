@@ -125,6 +125,8 @@
     mtu: "{{ migration_mtu | default(omit) }}"
     geneve_port: "{{ migration_geneve_port | default(omit) }}"
     ipv4_subnet: "{{ migration_ipv4_subnet | default(omit) }}"
+    routing_via_host: "{{ migration_routing_via_host | default(omit) }}"
+    ip_forwarding: "{{ migration_ip_forwarding | default(omit) }}"
     retries: 3
     delay: 5
   register: patch_result

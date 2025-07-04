@@ -38,3 +38,7 @@
         # migration_interface_name: eth0
         # migration_cidr: "10.240.0.0/14"
         # migration_prefix: 23
+        # migration_routing_via_host: true # True sets local gateway
+        # migration_ip_forwarding: Global # Set IP forwarding to Global alongside the local gateway mode if you
+                                          # need the host network of the node to act as a router for traffic not related
+                                          # to OVN-Kubernetes.

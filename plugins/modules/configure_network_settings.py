@@ -5,29 +5,33 @@
 DOCUMENTATION = r"""
 ---
 module: configure_network_settings
-short_description: Configure network settings for migration or rollback.
+short_description: Configure MTU, tunnel ports, internal subnet and gateway settings.
 version_added: "1.0.0"
 author: Miheer Salunke (@miheer)
 description:
-  - Configure network settings for migration or rollback.
-    For migration you can set mtu or geneve_port or ipv4_subnet or all.
-    For rollback you can set vxlanPort or mtu or all.
+  - Patch the C(Network.operator.openshift.io/cluster) custom resource either
+    while migrating to OVN-Kubernetes or rolling back to OpenShift SDN.
+  - For migration (OVN-Kubernetes)* you may adjust
+    C(mtu), C(geneve_port), C(ipv4_subnet) or any combination of them.
+  - For rollback (OpenShiftSDN)* you may adjust C(vxlanPort) and/or C(mtu).
+  - Gateway options C(routing_via_host) and C(ip_forwarding) are honoured
+    **only** when C(configure_network_type=ovnKubernetes).
 options:
   configure_network_type:
-    description: Provides for which CNI we need to configure the network settings.
+    description: Which default network plugin you want to patch.
     choices: [ovnKubernetes, openshiftSDN]
     required: true
     type: str
   mtu:
-    description: Provide the MTU value.
+    description: Desired MTU to configure on the overlay network.
     type: int
     required: false
   geneve_port:
-    description: Provide the geneve port.
+    description: Geneve UDP destination port to use (OVN-Kubernetes only).
     type: int
     required: false
   ipv4_subnet:
-    description: Provide the ipv4_subnet.
+    description: Internal IPv4 subnet (CIDR) for OVN-Kubernetes.  Ignored for SDN.
     type: str
     required: false
   retries:
@@ -42,6 +46,22 @@ options:
     description: Provide the vxlanPort
     type: int
     required: false
+  routing_via_host:
+    description:
+      - When set to C(true) the node operates in *local-gateway* mode and all
+        pod egress is first routed through the host network stack.
+      - When C(false) (default) the node stays in *shared-gateway* mode.
+      - Applicable only when C(configure_network_type=ovnKubernetes).
+    type: bool
+  ip_forwarding:
+    description:
+      - Set to C(Global) if the host network should forward IP traffic that is
+        unrelated to OVN-Kubernetes; use C(Restricted) (default) to turn that
+        off.
+      - Applicable only together with local-gateway mode
+        (see C(routing_via_host)).
+    type: str
+    choices: [Global, Restricted]
 """
 EXAMPLES = r"""
 - name: Customize network settings if parameters are provided
@@ -116,6 +136,8 @@ def main():
             "retries": {"type": "int", "default": 3},
             "delay": {"type": "int", "default": 5},
             "vxlanPort": {"type": "int", "required": False},
+            "routing_via_host": {"type": "bool", "required": False},
+            "ip_forwarding": {"type": "str", "choices": ["Global", "Restricted"], "required": False}
         },
         supports_check_mode=True,
     )
@@ -127,13 +149,18 @@ def main():
     retries = module.params["retries"]
     delay = module.params["delay"]
     vxlanPort = module.params["vxlanPort"]
+    routing_via_host = module.params["routing_via_host"]
+    ip_forwarding = module.params["ip_forwarding"]
 
     # Ensure patching is needed
-    if not any([mtu, geneve_port, ipv4_subnet, vxlanPort]):
+    if not any([mtu, geneve_port, ipv4_subnet, vxlanPort, routing_via_host, ip_forwarding]):
         module.exit_json(changed=False, msg="No changes required. No valid parameters provided.")
 
     # Build the patch payload
-    patch_data = {"spec": {"defaultNetwork": {f"{network_type}Config": {}}}}
+    if routing_via_host or ip_forwarding:
+        patch_data = {"spec": {"defaultNetwork": {f"{network_type}Config": {"gatewayConfig": {}}}}}
+    else:
+        patch_data = {"spec": {"defaultNetwork": {f"{network_type}Config": {}}}}
 
     if network_type == "ovnKubernetes":
         if mtu:
@@ -144,6 +171,11 @@ def main():
             patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["v4InternalSubnet"] = ipv4_subnet
         if vxlanPort:
             module.warn("vxlanPort can't be set in ovnKubernetesConfig")
+        if routing_via_host:
+            patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["gatewayConfig"]["routingViaHost"] = routing_via_host
+        if ip_forwarding:
+            patch_data["spec"]["defaultNetwork"][f"{network_type}Config"]["gatewayConfig"]["ipForwarding"] = ip_forwarding
+
         # Prepare and execute patch command
         patch_command = f"oc patch Network.operator.openshift.io cluster --type=merge --patch '{json.dumps(patch_data)}'"
         run_patch_command(module, patch_command, retries, delay)
