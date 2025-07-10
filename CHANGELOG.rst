@@ -4,6 +4,27 @@ Network.Offline\_Migration\_Sdn\_To\_Ovnk Release Notes
 
 .. contents:: Topics
 
+v1.0.3
+======
+
+Release Summary
+---------------
+
+Patch release focusing on adding important features during migration and fixing reboot speed.
+
+Major Changes
+-------------
+
+- Feature to specify `routingViaHost` and `ipForwarding` in the gatewayConfig object during migration.
+- Feature to specify a different cluster network IP address block.
+- Reboot masters only in serial fashion and other nodes not having role master in parallel fashion.
+
+Minor Changes
+-------------
+
+- Update the README file of the role reboot.
+- Update the README file with the new features.
+
 v1.0.2
 ======
 

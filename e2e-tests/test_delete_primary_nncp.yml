@@ -22,9 +22,9 @@
     - name: Create dummy NNCP for test
       ansible.builtin.copy:
         dest: "/tmp/{{ test_nncp_name }}.yaml"
-        mode: "0644"        # explicit, safe permissions
-        owner: root         # optional but recommended
-        group: root         # optional but recommended
+        mode: "0644" # explicit, safe permissions
+        owner: root # optional but recommended
+        group: root # optional but recommended
         content: |
           apiVersion: nmstate.io/v1
           kind: NodeNetworkConfigurationPolicy
