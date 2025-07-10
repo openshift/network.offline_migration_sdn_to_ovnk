@@ -97,10 +97,10 @@ def get_nodes(module, role, retries, delay):
 
             if role == "master":
                 if "node-role.kubernetes.io/master" in labels:
-                    nodes.append(node_name)
+                    nodes.append((node_name, labels))
             else:
                 if "node-role.kubernetes.io/master" not in labels:
-                    nodes.append(node_name)
+                    nodes.append((node_name, labels))
 
         if not nodes:
             return None, "❌ No nodes found for the specified role."
@@ -133,9 +133,15 @@ def get_pod_on_node(module, node, namespace, daemonset_label, retries, delay):
         return None, "❌ Failed to parse JSON output from `oc get pods`."
 
 
-def reboot_node(module, pod, namespace, delay, retries):
+def reboot_node(module, pod, namespace, delay, retries, labels):
     """Reboot a node using `oc rsh` into the MCD pod."""
-    command = ["oc", "rsh", "-n", namespace, pod, "chroot", "/rootfs", "shutdown", "-r", f"+{delay}"]
+    delay_str = f"+{int(delay)}"
+    if "node-role.kubernetes.io/master" in labels:
+        shutdown_command = ["shutdown", "-r", delay_str]
+    else:
+        shutdown_command = ["shutdown", "-r", "now"]
+
+    command = ["oc", "rsh", "-n", namespace, pod, "chroot", "/rootfs"] + shutdown_command
     stdout, error = run_command_with_retries(module, command, retries, delay)
     return stdout, error
 
@@ -185,19 +191,20 @@ def main():
 
     # Step 2: Reboot nodes sequentially
     reboot_results = []
-    for node in nodes:
+    for node, labels in nodes:
         pod, error = get_pod_on_node(module, node, namespace, daemonset_label, retries, retry_delay)
         if error:
             module.fail_json(msg=f"❌ Failed to get pod for node {node}: {error}")
 
-        stdout, error = reboot_node(module, pod, namespace, delay, retries)
+        stdout, error = reboot_node(module, pod, namespace, delay, retries, labels)
         if error:
             reboot_results.append({"node": node, "status": "failed", "error": error})
             module.fail_json(msg=f"❌ Failed to reboot node {node} due to error: {error}")
         else:
             reboot_results.append({"node": node, "status": "success", "output": stdout})
 
-        delay += 3  # 🔄 Increment delay for subsequent nodes
+        if "node-role.kubernetes.io/master" in labels:
+            delay += 3  # 🔄 Increment delay only for master nodes
 
     # Step 3: Wait for API server to become reachable
     wait_for_nodes_unreachable(delay)
