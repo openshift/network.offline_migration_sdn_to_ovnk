@@ -2,10 +2,7 @@
 
 Part of the **network.offline_migration_sdn_to_ovnk** collection.
 
-Safely **reboots OpenShift cluster nodes** in a controlled,
-batches-or-serial fashion, honouring *MachineConfigPool* topology and
-ensuring that workloads stay available during the migration or rollback
-process.
+Safely reboots master nodes in serial fashion and nodes with other roles than master in parallel fashion.
 
 **Why this role exists**
 

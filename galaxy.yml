@@ -10,7 +10,7 @@ namespace: network
 name: offline_migration_sdn_to_ovnk
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 1.0.2
+version: 1.0.3
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -51,10 +51,8 @@ repository: https://github.com/openshift/network.offline_migration_sdn_to_ovnk
 
 # The URL to any online docs
 documentation:
-
 # The URL to the homepage of the collection/project
 homepage:
-
 # The URL to the collection issue tracker
 issues: https://github.com/openshift/network.offline_migration_sdn_to_ovnk
 

@@ -6,7 +6,7 @@
     required_success_count: 3
     checks: "{{ post_migration_checks }}"
   register: result
-  notify: Display cluster operators status   # 👈  trigger the handler when changed
+  notify: Display cluster operators status # 👈  trigger the handler when changed
 
 - name: Check the CNI network provider
   network.offline_migration_sdn_to_ovnk.check_network_provider:
@@ -47,7 +47,7 @@
 - name: Confirm that no pods are in an error state
   ansible.builtin.command: oc get pods --all-namespaces -o wide
   register: all_pods
-  changed_when: false        # <- marks the task as "ok" instead of "changed"
+  changed_when: false # <- marks the task as "ok" instead of "changed"
 
 - name: Notify user if any pods are in an error state
   ansible.builtin.debug:

@@ -81,6 +81,26 @@ of `migration_`
 migration_interface_name: eth0
 ```
 
+- If your cluster uses static routes or routing policies in the host network, set routingViaHost spec to true 
+  and the ipForwarding spec to Global in the gatewayConfig object during migration.
+  To achieve the above during migration you need to set as follows in the playbook `playbooks/migration-playbook.yml`:
+```shell
+        migration_routing_via_host: true # True sets local gateway
+        migration_ip_forwarding: Global # Set IP forwarding to Global alongside the local gateway mode if you
+                                          # need the host network of the node to act as a router for traffic not related
+                                          # to OVN-Kubernetes.
+```
+
+- To specify a different cluster network IP address block, enter the following in the playbook `playbooks/migration-playbook.yml`:
+
+```shell
+        migration_cidr: "10.240.0.0/14"
+        migration_prefix: 23
+```
+where cidr is a CIDR block and prefix is the slice of the CIDR block apportioned to each node in your cluster. 
+You cannot use any CIDR block that overlaps with the 100.64.0.0/16 CIDR block because the 
+OVN-Kubernetes network provider uses this block internally.
+
 ## Testing
 
 - You must run lint tests after making any changes to the code.

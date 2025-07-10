@@ -8,7 +8,7 @@
     # use a harmless dummy network that never overlaps with the reserved list
     _test_cidr: 10.128.0.0/14
     _test_prefix: 23
-    _forbidden_cidr: 100.64.10.0/24  # overlaps 100.64.0.0/16 and _must_ fail
+    _forbidden_cidr: 100.64.10.0/24 # overlaps 100.64.0.0/16 and _must_ fail
     _forbidden_prefix: 24
 
   tasks:
@@ -54,7 +54,7 @@
         prefix: "{{ _forbidden_prefix }}"
         timeout: 30
       register: forbidden
-      failed_when: false  # allow play to continue so we can assert
+      failed_when: false # allow play to continue so we can assert
 
     - name: Assert module failed for forbidden CIDR overlap
       ansible.builtin.assert:
