@@ -1,5 +1,6 @@
 .PHONY: molecule
 
+# Test text 1
 # Also needs to be updated in galaxy.yml
 VERSION = 1.0.3
 
